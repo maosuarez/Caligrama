@@ -46,7 +46,8 @@ def test_errores():
 
 def _cli(*args, entrada=None):
     exe = Path(sys.executable).parent / "caligrama"
-    return subprocess.run([exe, *args], input=entrada, capture_output=True, text=True)
+    # caligrama lee y escribe UTF-8; en Windows el locale por defecto es cp1252.
+    return subprocess.run([exe, *args], input=entrada, capture_output=True, encoding="utf-8")
 
 
 def test_cli_texto_y_stdin():

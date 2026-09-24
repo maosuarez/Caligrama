@@ -1,8 +1,12 @@
 """Recorrido por la API de caligrama. Ejecuta: python examples/demo.py"""
 
+import sys
 from pathlib import Path
 
 import caligrama
+
+# En Windows la salida redirigida usa cp1252, que no tiene "─" ni todas las letras.
+sys.stdout.reconfigure(encoding="utf-8")
 
 LOGO = Path(__file__).resolve().parent.parent / "tests" / "data" / "python.jpeg"
 

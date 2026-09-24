@@ -135,6 +135,7 @@ def a_svg(frames: list[list[str]], cols: int, filas: int) -> str:
 
 
 def main() -> None:
+    sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--svg", help="escribir un SVG animado en esta ruta en vez de animar la terminal")
     args = p.parse_args()
