@@ -5,7 +5,7 @@
 **Dale una imagen y un poema. Te devuelve el poema con la forma de la imagen.**
 
 [![PyPI](https://img.shields.io/pypi/v/caligrama?color=ff2d55)](https://pypi.org/project/caligrama/)
-[![Python](https://img.shields.io/pypi/pyversions/caligrama)](https://pypi.org/project/caligrama/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776ab)](https://pypi.org/project/caligrama/)
 [![CI](https://github.com/maosuarez/caligrama/actions/workflows/ci.yml/badge.svg)](https://github.com/maosuarez/caligrama/actions/workflows/ci.yml)
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue)](https://github.com/maosuarez/caligrama/blob/main/LICENSE)
 [![Hecho en Rust](https://img.shields.io/badge/núcleo-Rust-orange)](https://github.com/maosuarez/caligrama/tree/main/src)
