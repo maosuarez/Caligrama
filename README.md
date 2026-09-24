@@ -12,7 +12,7 @@
 
 <img src="https://raw.githubusercontent.com/maosuarez/caligrama/main/assets/latido.svg" alt="Un corazón que late, escrito con un poema que corre por dentro. Generado con caligrama." width="420">
 
-<sub>Cada uno de los 40 fotogramas es una llamada a <code>caligrama.dibujar()</code>. El código está en <a href="https://github.com/maosuarez/caligrama/blob/main/examples/latido.py"><code>examples/latido.py</code></a>.</sub>
+<sub>El título y este corazón los genera la propia librería con <code>caligrama animar</code>. Código en <a href="https://github.com/maosuarez/caligrama/blob/main/examples/latido.py"><code>examples/latido.py</code></a>.</sub>
 
 </div>
 
@@ -96,6 +96,30 @@ La plantilla coincide celda por celda con el dibujo final (hay un test que lo ga
 
 Y si no quieres contar nada, `ancho="auto"` busca el ancho exacto en el que tu texto llena la figura una sola vez.
 
+## Animaciones, en la terminal o en SVG
+
+El título de este README sale de un solo comando:
+
+```bash
+caligrama animar assets/titulo.png -t caligrama -w 160 --espacios sin --con-huecos \
+    --colores "#ff2d55,#ff8a3d,#b44dff" --svg titulo.svg
+```
+
+Sin `--svg`, la animación se reproduce en la terminal hasta que pulses Ctrl+C. Hay dos movimientos, y se pueden combinar:
+
+- `--paso N`: el texto avanza N letras por fotograma y parece correr por dentro de la figura. Por defecto, `animar` calcula cuántos fotogramas hacen falta para que el texto dé la vuelta completa, así que el bucle no tiene salto.
+- `--latido F`: la figura late con un pulso doble y se encoge hasta el F·100 % de su tamaño entre latidos.
+
+Desde Python son tres funciones que encajan entre sí:
+
+```python
+fotos = caligrama.animar("corazon.png", poema, paso=3, latido=0.22, ancho=56)   # list[str]
+caligrama.reproducir(fotos, intervalo=0.07, colores=["#ff5f8f", "#ff2d55"])        # en la terminal
+svg = caligrama.a_svg(fotos, intervalo=0.07, fondo="#14111a")                       # para tu README o tu web
+```
+
+Los fotogramas son texto normal, todos del mismo tamaño y alineados, así que también puedes llevarlos a un GIF, a una web o a donde quieras. Los colores de la terminal usan ANSI de 24 bits: funcionan en Windows Terminal, iTerm2, GNOME Terminal y en casi cualquier terminal moderna.
+
 ## Por qué se ve bien con imágenes reales
 
 Casi todas las herramientas de arte ASCII deciden qué es figura mirando el brillo: lo oscuro se pinta y lo claro se deja vacío. Eso falla más de lo que parece. En el logo de Python, la serpiente amarilla es casi tan clara como el fondo blanco y desaparece. En un pingüino, la barriga blanca queda como un agujero.
@@ -121,6 +145,11 @@ caligrama hace otra cosa:
 | `invertir` | `--invertir` | `False` | Escribe alrededor de la figura en vez de dentro. |
 | `umbral` | `--umbral` | auto | Umbral 0–255 de separación figura/fondo, por si el automático no te convence. |
 | `aspecto` | `--aspecto` | `2.0` | Alto/ancho de un carácter en tu terminal o fuente. |
+| `desfase` | `--desfase` | `0` | Empieza a escribir el texto N letras más adelante. |
+| `colores` | `--colores` | sin color | Degradado horizontal en hexadecimal, en la terminal y en el SVG. |
+| (`a_svg`) | `--svg` | | Guarda un SVG en vez de imprimir (animado con `animar`). |
+
+Solo para animar: `fotogramas`/`--fotogramas`, `paso`/`--paso`, `latido`/`--latido`, `intervalo`/`--intervalo` y, en la terminal, `veces`/`--veces`.
 
 `caligrama --help` muestra lo mismo.
 
@@ -129,7 +158,7 @@ caligrama hace otra cosa:
 - Una tarjeta de cumpleaños que es su foto escrita con los mensajes de todos.
 - El banner de bienvenida de tu CLI con tu logo y el nombre de la herramienta.
 - Un mensaje para alguien especial, con la forma de algo que solo ustedes entienden.
-- Arte generativo: como cada llamada tarda milisegundos, puedes animar. El corazón de arriba sale de un bucle de 40 llamadas cambiando el tamaño de la figura y rotando el texto.
+- Una pantalla de carga para tu CLI con tu logo latiendo mientras el texto corre por dentro.
 
 Para verlo en acción:
 
@@ -137,12 +166,12 @@ Para verlo en acción:
 python examples/demo.py          # recorrido por la API
 bash examples/demo.sh            # recorrido por la terminal
 python examples/latido.py        # el corazón latiendo en tu terminal
-python examples/titulo.py        # el título de este README, que también es un caligrama
+python examples/titulo.py        # el título de este README, animado en tu terminal
 ```
 
 ## Cómo está hecho
 
-El núcleo (`src/core.rs`) es Rust puro: decodifica la imagen con el crate `image`, construye la máscara, la muestrea a una rejilla de caracteres y rellena. Encima hay una capa fina de [PyO3](https://pyo3.rs) (`src/lib.rs`) que expone `dibujar`, `analizar` y el comando `caligrama`, y [maturin](https://www.maturin.rs) lo empaqueta como wheel `abi3`. El CLI también es Rust, así que se comporta igual que la API.
+El núcleo (`src/core.rs`) es Rust puro: decodifica la imagen con el crate `image`, construye la máscara, la muestrea a una rejilla de caracteres y rellena. Las animaciones, el SVG y los colores viven en `src/animacion.rs`, también en Rust. Encima hay una capa fina de [PyO3](https://pyo3.rs) (`src/lib.rs`) que expone `dibujar`, `analizar`, `animar`, `a_svg`, `reproducir` y el comando `caligrama`, y [maturin](https://www.maturin.rs) lo empaqueta como wheel `abi3`. El CLI también es Rust, así que se comporta igual que la API.
 
 ## Contribuir
 
@@ -178,6 +207,9 @@ caligrama cat.png -w 50 -t "your poem here"
 import caligrama
 print(caligrama.dibujar("cat.png", "your poem here", ancho="auto"))
 info = caligrama.analizar("cat.png", "your poem here")   # capacity, per-row counts, template
+frames = caligrama.animar("heart.png", "your poem ", paso=2, latido=0.2)
+caligrama.reproducir(frames)                               # animate in the terminal
+open("heart.svg", "w").write(caligrama.a_svg(frames))       # or export an animated SVG
 ```
 
 The core is written in Rust (PyO3 + maturin) and ships as a single abi3 wheel with zero Python dependencies. Instead of a brightness threshold it detects the background from the image border and fills enclosed regions, so light-on-white subjects keep their shape. The API and CLI flags are in Spanish; the table above maps every option.
