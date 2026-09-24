@@ -77,6 +77,8 @@ pub struct Opciones {
     /// Radio en píxeles de un cierre morfológico (dilatar + erosionar) que une
     /// trazos punteados o hechos de letras. 0 = desactivado.
     pub suavizar: usize,
+    /// Letra del texto por la que se empieza a escribir (para hacerlo fluir).
+    pub desfase: usize,
 }
 
 impl Default for Opciones {
@@ -90,6 +92,7 @@ impl Default for Opciones {
             invertir: false,
             huecos: false,
             suavizar: 0,
+            desfase: 0,
         }
     }
 }
@@ -142,6 +145,29 @@ impl Mascara {
     fn get(&self, x: usize, y: usize) -> bool {
         self.datos[y * self.ancho + x]
     }
+
+    /// La misma figura escalada `s` veces respecto al centro, en el mismo
+    /// lienzo (vecino más cercano). Con `s < 1` nada se sale del lienzo.
+    fn escalar(&self, s: f32) -> Mascara {
+        let (cx, cy) = (self.ancho as f32 / 2.0, self.alto as f32 / 2.0);
+        let datos = (0..self.alto)
+            .flat_map(|y| (0..self.ancho).map(move |x| (x, y)))
+            .map(|(x, y)| {
+                let sx = cx + (x as f32 + 0.5 - cx) / s;
+                let sy = cy + (y as f32 + 0.5 - cy) / s;
+                sx >= 0.0
+                    && sy >= 0.0
+                    && (sx as usize) < self.ancho
+                    && (sy as usize) < self.alto
+                    && self.get(sx as usize, sy as usize)
+            })
+            .collect();
+        Mascara {
+            ancho: self.ancho,
+            alto: self.alto,
+            datos,
+        }
+    }
 }
 
 pub fn desde_bytes(bytes: &[u8], texto: &str, op: &Opciones) -> Result<String, Error> {
@@ -154,11 +180,106 @@ pub fn desde_ruta(ruta: &std::path::Path, texto: &str, op: &Opciones) -> Result<
 
 pub fn dibujar(img: &DynamicImage, texto: &str, op: &Opciones) -> Result<String, Error> {
     let silueta = Silueta::nueva(img, op)?;
-    let columnas = match op.ancho {
-        Ancho::Fijo(n) => n,
-        Ancho::Auto => silueta.ancho_para(contar_letras(texto, op.espacios))?,
-    };
-    rellenar(&silueta.rejilla(columnas), texto, op.repetir, op.espacios)
+    let texto = Texto::nuevo(texto, op.espacios, op.repetir)?;
+    let columnas = silueta.columnas(op.ancho, texto.letras)?;
+    let mut fotos = componer(&[silueta.rejilla(columnas)], &texto, &[op.desfase])?;
+    Ok(fotos.remove(0))
+}
+
+/// El texto listo para escribirse: grafemas del ciclo (con el separador de
+/// repetición si toca) y cuántos son del texto en sí.
+pub(crate) struct Texto {
+    grafemas: Vec<String>,
+    repetir: bool,
+    /// Letras del texto sin el separador (lo que cuenta `ancho="auto"`).
+    pub(crate) letras: usize,
+}
+
+impl Texto {
+    pub(crate) fn nuevo(texto: &str, espacios: Espacios, repetir: bool) -> Result<Self, Error> {
+        if texto.trim().is_empty() {
+            return Err(Error::TextoVacio);
+        }
+        let mut grafemas: Vec<String> = limpiar(texto, espacios)
+            .graphemes(true)
+            .map(String::from)
+            .collect();
+        let letras = grafemas.len();
+        if repetir && espacios == Espacios::Normal {
+            grafemas.push(" ".into());
+        }
+        Ok(Self {
+            grafemas,
+            repetir,
+            letras,
+        })
+    }
+
+    /// Largo de un ciclo completo: tras tantas letras el texto se repite igual.
+    pub(crate) fn ciclo(&self) -> usize {
+        self.grafemas.len()
+    }
+
+    fn en(&self, i: usize) -> &str {
+        if self.repetir {
+            &self.grafemas[i % self.grafemas.len()]
+        } else {
+            self.grafemas.get(i).map_or(" ", String::as_str)
+        }
+    }
+}
+
+/// Escribe el texto en cada rejilla (fotograma), empezando en su desfase.
+/// Todas se recortan con los mismos márgenes (la unión de sus figuras), así
+/// que los fotogramas quedan alineados entre sí.
+pub(crate) fn componer(
+    rejillas: &[Vec<Vec<bool>>],
+    texto: &Texto,
+    desfases: &[usize],
+) -> Result<Vec<String>, Error> {
+    let con_figura = |f: &Vec<bool>| f.contains(&true);
+    let primera = rejillas
+        .iter()
+        .filter_map(|r| r.iter().position(con_figura))
+        .min()
+        .ok_or(Error::SiluetaVacia)?;
+    let ultima = rejillas
+        .iter()
+        .filter_map(|r| r.iter().rposition(con_figura))
+        .max()
+        .unwrap();
+    let margen = rejillas
+        .iter()
+        .flat_map(|r| r.iter().filter_map(|f| f.iter().position(|&b| b)))
+        .min()
+        .unwrap();
+
+    Ok(rejillas
+        .iter()
+        .zip(desfases)
+        .map(|(rejilla, &desfase)| {
+            let mut i = desfase;
+            (primera..=ultima)
+                .map(|y| {
+                    let fila = rejilla.get(y).map_or(&[][..], Vec::as_slice);
+                    let linea: String = fila
+                        .iter()
+                        .skip(margen)
+                        .map(|&b| {
+                            if b {
+                                i += 1;
+                                texto.en(i - 1)
+                            } else {
+                                " "
+                            }
+                        })
+                        .collect();
+                    linea.trim_end().to_string()
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+        })
+        .collect())
 }
 
 /// Texto tal como se escribirá en las celdas (sin el separador de repetición).
@@ -203,6 +324,22 @@ impl Silueta {
 
     pub fn rejilla(&self, columnas: usize) -> Vec<Vec<bool>> {
         rejilla(&self.mascara, columnas, self.aspecto)
+    }
+
+    /// Rejilla de la figura escalada `escala` veces (1.0 = tamaño original).
+    pub fn rejilla_escalada(&self, columnas: usize, escala: f32) -> Vec<Vec<bool>> {
+        if escala == 1.0 {
+            return self.rejilla(columnas);
+        }
+        rejilla(&self.mascara.escalar(escala), columnas, self.aspecto)
+    }
+
+    /// Resuelve `Ancho::Auto` para un texto de `letras` letras.
+    pub fn columnas(&self, ancho: Ancho, letras: usize) -> Result<usize, Error> {
+        match ancho {
+            Ancho::Fijo(n) => Ok(n),
+            Ancho::Auto => self.ancho_para(letras),
+        }
     }
 
     /// Letras que caben a `columnas` de ancho.
@@ -534,42 +671,9 @@ pub fn rellenar(
     repetir: bool,
     espacios: Espacios,
 ) -> Result<String, Error> {
-    if texto.trim().is_empty() {
-        return Err(Error::TextoVacio);
-    }
-    let limpio = limpiar(texto, espacios);
-    let mut grafemas: Vec<&str> = limpio.graphemes(true).collect();
-    if repetir && espacios == Espacios::Normal {
-        grafemas.push(" ");
-    }
-
-    let (filas, margen) = recortar(rejilla)?;
-
-    let mut siguiente = {
-        let mut i = 0usize;
-        move || {
-            if i >= grafemas.len() {
-                if !repetir {
-                    return " ";
-                }
-                i = 0;
-            }
-            i += 1;
-            grafemas[i - 1]
-        }
-    };
-
-    let lineas: Vec<String> = filas
-        .iter()
-        .map(|fila| {
-            let linea: String = fila[margen..]
-                .iter()
-                .map(|&b| if b { siguiente() } else { " " })
-                .collect();
-            linea.trim_end().to_string()
-        })
-        .collect();
-    Ok(lineas.join("\n"))
+    let texto = Texto::nuevo(texto, espacios, repetir)?;
+    let mut fotos = componer(&[rejilla.to_vec()], &texto, &[0])?;
+    Ok(fotos.remove(0))
 }
 
 #[cfg(test)]

@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -60,7 +61,7 @@ def test_cli_texto_y_stdin():
 
 def test_cli_errores():
     r = _cli("--ancho", "x", str(LOGO))
-    assert r.returncode == 2 and "--ancho" in r.stderr
+    assert r.returncode == 2 and "ancho" in r.stderr and "--help" in r.stderr
     assert _cli("-h").returncode == 0
 
 
@@ -117,3 +118,53 @@ def test_espacios():
     assert info["texto_letras"] == 4
     with pytest.raises(ValueError):
         caligrama.dibujar(LOGO, POEMA, espacios="algunos")
+
+
+def test_desfase_hace_fluir_el_texto():
+    a = caligrama.dibujar(LOGO, "abc", ancho=30)
+    b = caligrama.dibujar(LOGO, "abc", ancho=30, desfase=1)
+    assert a.lstrip()[0] == "a" and b.lstrip()[0] == "b"
+    # "abc" + separador: 4 letras de ciclo.
+    assert caligrama.dibujar(LOGO, "abc", ancho=30, desfase=4) == a
+
+
+def test_animar():
+    fotos = caligrama.animar(LOGO, "caligrama", ancho=40, espacios="sin")
+    assert len(fotos) == 9  # bucle sin costura: una vuelta completa del texto
+    assert len({f.count("\n") for f in fotos}) == 1
+    assert fotos[0] == caligrama.dibujar(LOGO, "caligrama", ancho=40, espacios="sin")
+    assert fotos[1] == caligrama.dibujar(LOGO, "caligrama", ancho=40, espacios="sin", desfase=1)
+    latiendo = caligrama.animar(LOGO, "x", ancho=30, paso=0, latido=0.3, fotogramas=10)
+    assert len(latiendo) == 10 and len(set(latiendo)) > 1
+    with pytest.raises(ValueError):
+        caligrama.animar(LOGO, "x", latido=1.5)
+
+
+def test_a_svg():
+    fotos = caligrama.animar(LOGO, "ab", ancho=20, fotogramas=3)
+    svg = caligrama.a_svg(fotos, colores=["#000"], fondo="#fff")
+    assert svg.startswith("<svg") and svg.count('<g class="f"') == 3
+    assert "#000000" in svg and "#ffffff" in svg
+    assert "@keyframes" not in caligrama.a_svg(fotos[0])
+    with pytest.raises(ValueError):
+        caligrama.a_svg(fotos, colores=["red"])
+
+
+def test_reproducir(capfd):
+    caligrama.reproducir(["ab", "cd"], intervalo=0, veces=1)
+    salida = capfd.readouterr().out
+    assert "ab" in salida and "cd" in salida
+    assert salida.startswith("\x1b[?25l") and "\x1b[?25h" in salida
+
+
+def test_cli_animar(tmp_path):
+    destino = tmp_path / "a.svg"
+    r = _cli("animar", str(LOGO), "-w", "30", "-t", "hola", "--svg", str(destino))
+    assert r.returncode == 0, r.stderr
+    assert destino.read_text(encoding="utf-8").count('<g class="f"') == 5
+    # Sin terminal, la animación da una sola vuelta y termina.
+    r = _cli("animar", str(LOGO), "-w", "20", "-t", "ab", "--intervalo", "0")
+    # 3 fotogramas: se dibuja el primero y se sube 2 veces para redibujar.
+    assert r.returncode == 0 and len(re.findall(r"\x1b\[\d+A", r.stdout)) == 2
+    r = _cli(str(LOGO), "-w", "20", "-t", "ab", "--latido", "0.2")
+    assert r.returncode == 2 and "--latido" in r.stderr
