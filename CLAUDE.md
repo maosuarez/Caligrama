@@ -79,5 +79,5 @@ cargo fmt && cargo clippy --all-targets -- -D warnings
 - `.github/workflows/ci.yml`: fmt, clippy, `cargo test` y pytest + `examples/demo.py` en Linux/macOS/Windows × Python 3.9/3.13.
 - `.github/workflows/release.yml`: al empujar un tag `vX.Y.Z` compila wheels abi3 (manylinux/musllinux x86_64+aarch64, Windows x64, macOS x86_64+arm64) y sdist, publica en PyPI con Trusted Publishing (environment `pypi`, sin tokens) y crea el GitHub Release. La versión sale de `Cargo.toml`.
 - `caligrama.pyi` son las firmas públicas: actualizarlas junto con `src/lib.rs`.
-- `assets/latido.svg` (animación del README) se regenera con `python examples/latido.py --svg assets/latido.svg`. El README usa URLs absolutas de GitHub porque también se muestra en PyPI.
+- `assets/latido.svg` y `assets/titulo.svg` (animaciones del README) se regeneran con `python examples/latido.py --svg assets/latido.svg` y `python examples/titulo.py --svg assets/titulo.svg` (este parte de `assets/titulo.png`). El README usa URLs absolutas de GitHub porque también se muestra en PyPI.
 - `live-test/` está en `.gitignore`: carpeta local para probar imágenes (`./live-test/probar.sh [ancho] [opciones]`).

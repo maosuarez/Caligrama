@@ -1,6 +1,6 @@
 <div align="center">
 
-# caligrama
+<h1><img src="https://raw.githubusercontent.com/maosuarez/caligrama/main/assets/titulo.svg" alt="caligrama" width="100%"></h1>
 
 **Dale una imagen y un poema. Te devuelve el poema con la forma de la imagen.**
 
@@ -137,6 +137,7 @@ Para verlo en acción:
 python examples/demo.py          # recorrido por la API
 bash examples/demo.sh            # recorrido por la terminal
 python examples/latido.py        # el corazón latiendo en tu terminal
+python examples/titulo.py        # el título de este README, que también es un caligrama
 ```
 
 ## Cómo está hecho
