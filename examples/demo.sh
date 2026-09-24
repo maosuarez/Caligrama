@@ -12,3 +12,6 @@ paso caligrama "$IMG" -w auto --sin-repetir -t "Podrá nublarse el sol eternamen
 paso caligrama "$IMG" -w 40 --espacios sin -t "Python"
 paso caligrama "$IMG" -w 40 --invertir -t "fondo"
 echo 'Un poema desde stdin' | { printf '\n\033[1m$ echo ... | caligrama %s -w 30\033[0m\n' "$IMG"; caligrama "$IMG" -w 30; }
+paso caligrama "$IMG" -w 40 -t "Python" --espacios sin --colores "#3776ab,#ffd43b"
+paso caligrama animar "$IMG" -w 30 -t "Python" --espacios sin --fotogramas 6 --intervalo 0.15 --veces 2 --colores "#3776ab,#ffd43b"
+paso caligrama animar "$IMG" -w 40 -t "Python" --espacios sin --svg /tmp/caligrama-demo.svg

@@ -40,3 +40,8 @@ print(caligrama.dibujar(LOGO, "fondo ", ancho=40, invertir=True, espacios="todos
 
 titulo("6. También acepta bytes (útil con requests, bases de datos, etc.)")
 print(caligrama.dibujar(LOGO.read_bytes(), "bytes", ancho=24, espacios="sin"))
+
+titulo("7. Animar: el texto corre por la figura (aquí, 3 fotogramas en la terminal)")
+fotos = caligrama.animar(LOGO, "Python", ancho=30, espacios="sin", fotogramas=3)
+caligrama.reproducir(fotos, intervalo=0.3, veces=1)
+print(f"{len(fotos)} fotogramas; caligrama.a_svg(fotos) los convierte en un SVG animado.")
