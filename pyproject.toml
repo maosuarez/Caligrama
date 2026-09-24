@@ -1,0 +1,44 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "caligrama"
+description = "Escribe mensajes y poemas dentro de la silueta de cualquier imagen, como texto. Núcleo en Rust, cero dependencias."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Mao Suarez", email = "maosuarezbarrer@gmail.com" }]
+keywords = ["caligrama", "calligram", "ascii-art", "text-art", "poesia", "poetry", "terminal", "rust"]
+dependencies = []
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: Spanish",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Artistic Software",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+    "Topic :: Text Processing",
+]
+
+[project.urls]
+Homepage = "https://github.com/maosuarez/caligrama"
+Repository = "https://github.com/maosuarez/caligrama"
+Issues = "https://github.com/maosuarez/caligrama/issues"
+Changelog = "https://github.com/maosuarez/caligrama/blob/main/CHANGELOG.md"
+
+[project.scripts]
+caligrama = "caligrama:cli"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+include = [{ path = "LICENSE", format = "sdist" }]
+exclude = ["live-test/**", "assets/**", ".github/**"]

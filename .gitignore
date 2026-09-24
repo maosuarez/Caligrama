@@ -1,0 +1,9 @@
+target/
+.venv/
+__pycache__/
+*.so
+.pytest_cache/
+live-test/
+.playwright-mcp/
+.code-review-graph/
+dist/
