@@ -90,7 +90,7 @@ jobs:
       id-token: write   # Trusted Publishing
       contents: write   # crear el GitHub Release
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
