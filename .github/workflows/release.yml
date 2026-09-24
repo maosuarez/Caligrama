@@ -23,7 +23,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           args: --release --out dist
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-linux-${{ matrix.target }}-${{ matrix.manylinux }}
           path: dist
@@ -39,7 +39,7 @@ jobs:
         with:
           target: x64
           args: --release --out dist
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-windows-x64
           path: dist
@@ -62,7 +62,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           args: --release --out dist
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-macos-${{ matrix.target }}
           path: dist
@@ -75,7 +75,7 @@ jobs:
         with:
           command: sdist
           args: --out dist
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: sdist
           path: dist
