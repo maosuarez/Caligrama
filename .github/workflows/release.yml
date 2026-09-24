@@ -1,0 +1,105 @@
+# Publica en PyPI al empujar un tag vX.Y.Z (Trusted Publishing, sin tokens).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64, aarch64]
+        manylinux: [auto, musllinux_1_2]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          args: --release --out dist
+      - uses: actions/upload-artifact@v6
+        with:
+          name: wheels-linux-${{ matrix.target }}-${{ matrix.manylinux }}
+          path: dist
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: PyO3/maturin-action@v1
+        with:
+          target: x64
+          args: --release --out dist
+      - uses: actions/upload-artifact@v6
+        with:
+          name: wheels-windows-x64
+          path: dist
+
+  macos:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: macos-15-intel
+            target: x86_64
+          - runner: macos-latest
+            target: aarch64
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+      - uses: actions/upload-artifact@v6
+        with:
+          name: wheels-macos-${{ matrix.target }}
+          path: dist
+
+  sdist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sdist
+          path: dist
+
+  publish:
+    needs: [linux, windows, macos, sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/caligrama
+    permissions:
+      id-token: write   # Trusted Publishing
+      contents: write   # crear el GitHub Release
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --repo "${GITHUB_REPOSITORY}" --title "${GITHUB_REF_NAME}" --generate-notes

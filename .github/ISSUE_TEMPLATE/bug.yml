@@ -1,0 +1,26 @@
+name: Reportar un error
+description: Algo no se dibuja como esperabas o falla
+labels: [bug]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué pasó
+      description: Qué esperabas ver y qué salió. Pega la salida de caligrama si puedes.
+    validations:
+      required: true
+  - type: textarea
+    id: como
+    attributes:
+      label: Cómo reproducirlo
+      description: Comando o código exacto. Si puedes, adjunta la imagen.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versiones
+      placeholder: "caligrama 0.1.0 · Python 3.12 · Windows 11"
+    validations:
+      required: true

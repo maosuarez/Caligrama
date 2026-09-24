@@ -1,0 +1,11 @@
+name: Proponer una idea
+description: Una opción nueva, un formato, un modo de dibujo
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: La idea
+      description: Qué quieres poder hacer y para qué. Un ejemplo de la salida que imaginas ayuda mucho.
+    validations:
+      required: true
