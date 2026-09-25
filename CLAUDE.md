@@ -75,6 +75,14 @@ pytest tests/test_caligrama.py::test_errores
 cargo fmt && cargo clippy --all-targets -- -D warnings
 ```
 
+## Documentación web
+
+La documentación completa (ES/EN) vive en otro repo: `../maosuarez-profile/public/docs/caligrama.html`, publicada en https://www.maosuarez.com/docs/caligrama. Es un solo HTML con ambos idiomas (`<article data-l="es">` y `<article data-l="en">`, más el índice `nav.toc`).
+
+- **Después de cada cambio** que afecte a la API, el CLI, los valores por defecto, los mensajes de error o la versión, actualiza esa página en **los dos idiomas** (incluida la versión del encabezado `.ver` y `caligrama.__version__` en "Tipos y versión"). Los ejemplos de salida se sacan ejecutando caligrama, no se inventan.
+- Si no es posible editarla (el repo no está disponible o no hay permisos), **avisa explícitamente** al terminar de que la documentación de `maosuarez-profile` debe actualizarse y con qué.
+- Los cambios en `maosuarez-profile` se commitean y empujan en ese repo, no en este.
+
 ## Publicación
 
 - Repo: https://github.com/maosuarez/caligrama · PyPI: https://pypi.org/p/caligrama

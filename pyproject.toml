@@ -37,6 +37,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/maosuarez/caligrama"
+Documentation = "https://www.maosuarez.com/docs/caligrama"
 Repository = "https://github.com/maosuarez/caligrama"
 Issues = "https://github.com/maosuarez/caligrama/issues"
 Changelog = "https://github.com/maosuarez/caligrama/blob/main/CHANGELOG.md"
