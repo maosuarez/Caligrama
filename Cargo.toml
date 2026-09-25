@@ -1,10 +1,11 @@
 [package]
 name = "caligrama"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 description = "Escribe un poema dentro de la silueta de una imagen y lo devuelve como texto. Núcleo en Rust de la librería de Python caligrama."
 license = "MIT"
 authors = ["Mao Suarez <maosuarezbarrer@gmail.com>"]
+documentation = "https://www.maosuarez.com/docs/caligrama"
 repository = "https://github.com/maosuarez/caligrama"
 readme = "README.md"
 keywords = ["calligram", "ascii-art", "poetry", "text-art", "pyo3"]
