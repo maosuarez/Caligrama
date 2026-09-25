@@ -4,6 +4,15 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Añadido
+
+- `examples/arbol.py` y `assets/arbol.svg`: el árbol a color del README.
+- `bench/`: benchmark contra pywhatkit, ascii_magic, viu, catimg y scripts hechos a mano, con informe HTML.
+
+### Cambiado
+
+- README: árbol a color al principio y sección "Frente a otras herramientas" con los resultados del benchmark.
+
 ## [0.3.0] - 2026-09-24
 
 ### Añadido

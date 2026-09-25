@@ -35,6 +35,19 @@ do sucede rá! Podrá la muerte
         tu amor.
 ```
 
+Y si se lo pides, cada letra toma el color que tiene la imagen en ese punto:
+
+<div align="center">
+<table>
+<tr>
+<td align="center"><img src="https://raw.githubusercontent.com/maosuarez/caligrama/main/assets/arbol.png" alt="Ilustración de un árbol con copa verde y tronco café" width="180"><br><sub>la imagen</sub></td>
+<td align="center"><img src="https://raw.githubusercontent.com/maosuarez/caligrama/main/assets/arbol.svg" alt="El mismo árbol escrito con un poema; la copa sale verde y el tronco café" width="560"><br><sub>el caligrama</sub></td>
+</tr>
+</table>
+</div>
+
+<p align="center"><sub><code>caligrama arbol.png -w 70 --espacios sin --colores imagen -f poema.txt</code> · código en <a href="https://github.com/maosuarez/caligrama/blob/main/examples/arbol.py"><code>examples/arbol.py</code></a></sub></p>
+
 ## Instalación
 
 ```bash
@@ -122,11 +135,11 @@ Los fotogramas son texto normal, todos del mismo tamaño y alineados, así que t
 
 ## Los colores de la imagen
 
-Con `color=True` (o `--colores imagen`) cada letra se pinta con el color que tiene la imagen en ese punto: la copa de un árbol sale verde y el tronco café, sin decirle dónde está cada parte. El color de cada celda es el promedio de sus píxeles de figura, así que los bordes suaves del fondo no lo ensucian.
+Con `color=True` (o `--colores imagen`) cada letra se pinta con el color que tiene la imagen en ese punto. Así sale el árbol del principio: nadie le dijo dónde estaba la copa ni dónde el tronco. El color de cada celda es el promedio de sus píxeles de figura, así que el blanco del fondo no aclara los bordes.
 
 ```python
 print(caligrama.dibujar("arbol.png", poema, ancho=70, espacios="sin", color=True))
-svg = caligrama.a_svg(caligrama.animar("arbol.png", poema, color=True), fondo="#111")
+svg = caligrama.a_svg(caligrama.animar("arbol.png", poema, fotogramas=24, color=True), fondo="#111")
 ```
 
 ```bash
@@ -135,6 +148,29 @@ caligrama animar arbol.png -f poema.txt --colores imagen --svg arbol.svg
 ```
 
 El resultado sigue siendo un `str`, con los colores en ANSI; `a_svg` y `reproducir` los respetan tal cual. Si además pasas un degradado con `colores=`, el degradado manda.
+
+Dos cosas a tener en cuenta. En el SVG cada letra de color lleva su propia etiqueta, así que una animación larga pesa: limita los fotogramas si va a un README. Y una figura muy oscura (un gato negro) casi no se ve sobre una terminal oscura; es el color real de la imagen.
+
+## Frente a otras herramientas
+
+Puse el árbol de arriba y el mismo poema en todo lo que encontré para dibujar imágenes con texto en la terminal, a 70 columnas:
+
+| | Qué dibuja | Tiempo | Import | Paquetes | Palabras que se leen | Colores |
+|---|---|---:|---:|---:|---:|---:|
+| **caligrama** `color=True` | tu texto, con la forma y los colores de la imagen | 2,1 ms | 1 ms | 1 | 80 % | 1161 |
+| Pillow + rich, a mano | tu texto sin espacios, con 2 colores fijos | 13,7 ms | 40 ms | 5 | 17 % | 2 |
+| [ascii_magic](https://pypi.org/project/ascii-magic/) | símbolos según el brillo, 16 colores | 22,1 ms | 42 ms | 2 | 0 % | 5 |
+| [pywhatkit](https://pypi.org/project/pywhatkit/) | símbolos según el brillo, siempre a 80 columnas | 1,6 ms | 904 ms | 27 | 0 % | 0 |
+| [viu](https://github.com/atanunq/viu) | la foto, dos píxeles por celda con `▄` | 3,2 ms¹ | — | binario | 0 % | 3007 |
+| [catimg](https://github.com/posva/catimg) | la foto, dos píxeles por celda con `▀` | 3,3 ms¹ | — | binario | 0 % | 3184 |
+
+<sub>Mediana de 5 ejecuciones en un portátil con WSL2 y Python 3.11; el import se mide aparte, en un proceso nuevo. ¹ Incluye arrancar el programa, que es como se usan. "Palabras que se leen" es el porcentaje de palabras del dibujo que son palabras enteras del poema. "Paquetes" cuenta todo lo que se instala, dependencias y el propio paquete incluidos.</sub>
+
+Si lo que quieres es ver una foto en la terminal, viu y catimg ganan sin discusión: pintan dos píxeles de color por celda y ningún dibujo hecho con letras se les acerca. Pero no llevan mensaje, y si copias su salida como texto plano te queda un rectángulo de bloques. ascii_magic y pywhatkit cambian el brillo por símbolos: la imagen se reconoce y el texto no existe.
+
+Hacerlo a mano con Pillow sirve hasta que la imagen tiene ruido de JPEG, un amarillo claro sobre blanco o un hueco en medio; ahí empiezan los ajustes que caligrama ya trae (la sección siguiente cuenta cuáles). En la tabla también se ve lo otro: sin espacios las palabras se pegan y casi nada se lee. caligrama con `espacios="sin"`, como el árbol de arriba, baja al 13 %. Es el precio de una figura más sólida.
+
+Para repetirlo con tus imágenes: `python bench/benchmark.py`. Deja en `bench/resultados/` un informe HTML con todos los dibujos lado a lado.
 
 ## Por qué se ve bien con imágenes reales
 
@@ -184,6 +220,7 @@ python examples/demo.py          # recorrido por la API
 bash examples/demo.sh            # recorrido por la terminal
 python examples/latido.py        # el corazón latiendo en tu terminal
 python examples/titulo.py        # el título de este README, animado en tu terminal
+python examples/arbol.py         # el árbol a color del principio
 ```
 
 ## Cómo está hecho
@@ -227,7 +264,10 @@ info = caligrama.analizar("cat.png", "your poem here")   # capacity, per-row cou
 frames = caligrama.animar("heart.png", "your poem ", paso=2, latido=0.2)
 caligrama.reproducir(frames)                               # animate in the terminal
 open("heart.svg", "w").write(caligrama.a_svg(frames))       # or export an animated SVG
+print(caligrama.dibujar("tree.png", "your poem", color=True)) # each letter takes the image's color
 ```
+
+Compared with image viewers (viu, catimg) and ASCII-art tools (ascii_magic, pywhatkit) on the same image, caligrama is the one that writes your text legibly: 80 % of words intact, against 17 % for a hand-written Pillow + rich script and 0 % for the rest. It has no dependencies and imports in about 1 ms. Viewers are more faithful to the photo; they just can't carry a message. Run `python bench/benchmark.py` to reproduce.
 
 The core is written in Rust (PyO3 + maturin) and ships as a single abi3 wheel with zero Python dependencies. Instead of a brightness threshold it detects the background from the image border and fills enclosed regions, so light-on-white subjects keep their shape. The API and CLI flags are in Spanish; the table above maps every option.
 
