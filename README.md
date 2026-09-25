@@ -120,6 +120,22 @@ svg = caligrama.a_svg(fotos, intervalo=0.07, fondo="#14111a")                   
 
 Los fotogramas son texto normal, todos del mismo tamaño y alineados, así que también puedes llevarlos a un GIF, a una web o a donde quieras. Los colores de la terminal usan ANSI de 24 bits: funcionan en Windows Terminal, iTerm2, GNOME Terminal y en casi cualquier terminal moderna.
 
+## Los colores de la imagen
+
+Con `color=True` (o `--colores imagen`) cada letra se pinta con el color que tiene la imagen en ese punto: la copa de un árbol sale verde y el tronco café, sin decirle dónde está cada parte. El color de cada celda es el promedio de sus píxeles de figura, así que los bordes suaves del fondo no lo ensucian.
+
+```python
+print(caligrama.dibujar("arbol.png", poema, ancho=70, espacios="sin", color=True))
+svg = caligrama.a_svg(caligrama.animar("arbol.png", poema, color=True), fondo="#111")
+```
+
+```bash
+caligrama arbol.png -f poema.txt -w 70 --colores imagen
+caligrama animar arbol.png -f poema.txt --colores imagen --svg arbol.svg
+```
+
+El resultado sigue siendo un `str`, con los colores en ANSI; `a_svg` y `reproducir` los respetan tal cual. Si además pasas un degradado con `colores=`, el degradado manda.
+
 ## Por qué se ve bien con imágenes reales
 
 Casi todas las herramientas de arte ASCII deciden qué es figura mirando el brillo: lo oscuro se pinta y lo claro se deja vacío. Eso falla más de lo que parece. En el logo de Python, la serpiente amarilla es casi tan clara como el fondo blanco y desaparece. En un pingüino, la barriga blanca queda como un agujero.
@@ -146,6 +162,7 @@ caligrama hace otra cosa:
 | `umbral` | `--umbral` | auto | Umbral 0–255 de separación figura/fondo, por si el automático no te convence. |
 | `aspecto` | `--aspecto` | `2.0` | Alto/ancho de un carácter en tu terminal o fuente. |
 | `desfase` | `--desfase` | `0` | Empieza a escribir el texto N letras más adelante. |
+| `color` | `--colores imagen` | `False` | Pinta cada letra con el color de la imagen en su posición (ANSI de 24 bits). |
 | `colores` | `--colores` | sin color | Degradado horizontal en hexadecimal, en la terminal y en el SVG. |
 | (`a_svg`) | `--svg` | | Guarda un SVG en vez de imprimir (animado con `animar`). |
 

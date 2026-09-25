@@ -62,9 +62,10 @@ impl TryFrom<AnchoPy> for Ancho {
 
 /// Escribe `texto` dentro de la silueta de `imagen` (ruta o bytes) y devuelve
 /// el resultado como texto multilínea. `ancho="auto"` elige el menor ancho en
-/// el que cabe todo el texto.
+/// el que cabe todo el texto. `color=True` pinta cada letra (ANSI truecolor)
+/// con el color de la imagen en su posición.
 #[pyfunction]
-#[pyo3(signature = (imagen, texto, ancho=AnchoPy::Num(60), aspecto=2.0, repetir=true, espacios="normal", umbral=None, invertir=false, huecos=false, suavizar=0, desfase=0))]
+#[pyo3(signature = (imagen, texto, ancho=AnchoPy::Num(60), aspecto=2.0, repetir=true, espacios="normal", umbral=None, invertir=false, huecos=false, suavizar=0, desfase=0, color=false))]
 #[allow(clippy::too_many_arguments)] // espejo de los kwargs de Python
 fn dibujar(
     imagen: Imagen,
@@ -78,6 +79,7 @@ fn dibujar(
     huecos: bool,
     suavizar: usize,
     desfase: usize,
+    color: bool,
 ) -> PyResult<String> {
     let op = Opciones {
         ancho: ancho.try_into()?,
@@ -89,6 +91,7 @@ fn dibujar(
         huecos,
         suavizar,
         desfase,
+        color,
     };
     Ok(core::dibujar(&imagen.cargar()?, texto, &op)?)
 }
@@ -97,7 +100,7 @@ fn dibujar(
 /// fotograma y, con `latido` > 0, la figura late una vez por vuelta. Con
 /// `fotogramas=None` se calculan los justos para un bucle sin costura.
 #[pyfunction]
-#[pyo3(signature = (imagen, texto, fotogramas=None, paso=1, latido=0.0, ancho=AnchoPy::Num(60), aspecto=2.0, repetir=true, espacios="normal", umbral=None, invertir=false, huecos=false, suavizar=0, desfase=0))]
+#[pyo3(signature = (imagen, texto, fotogramas=None, paso=1, latido=0.0, ancho=AnchoPy::Num(60), aspecto=2.0, repetir=true, espacios="normal", umbral=None, invertir=false, huecos=false, suavizar=0, desfase=0, color=false))]
 #[allow(clippy::too_many_arguments)]
 fn animar(
     imagen: Imagen,
@@ -114,6 +117,7 @@ fn animar(
     huecos: bool,
     suavizar: usize,
     desfase: usize,
+    color: bool,
 ) -> PyResult<Vec<String>> {
     let op = Opciones {
         ancho: ancho.try_into()?,
@@ -125,6 +129,7 @@ fn animar(
         huecos,
         suavizar,
         desfase,
+        color,
     };
     let an = Animacion {
         fotogramas,
@@ -418,6 +423,7 @@ opciones:
 
 salida (dibujar y animar):
       --colores C1,C2   degradado horizontal en hexadecimal (#ff2d55,#b44dff)
+                        o \"imagen\": cada letra con el color de la imagen en su sitio
       --svg RUTA        guardar un SVG en vez de imprimir (animado con animar)
       --fondo COLOR     color de fondo del SVG (transparente si no se indica)
       --tamano PX       tamaño de letra del SVG (14)
@@ -524,7 +530,10 @@ fn ejecutar_cli(args: &[String]) -> Result<Salida, String> {
             }
             "--colores" => {
                 de_salida = Some(a.clone());
-                colores_cli = Some(valor(a)?);
+                match valor(a)? {
+                    v if v.eq_ignore_ascii_case("imagen") => op.color = true,
+                    v => colores_cli = Some(v),
+                }
             }
             "--fondo" => {
                 de_salida = Some(a.clone());

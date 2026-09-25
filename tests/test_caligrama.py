@@ -150,6 +150,24 @@ def test_a_svg():
         caligrama.a_svg(fotos, colores=["red"])
 
 
+def test_color_de_la_imagen(tmp_path):
+    plano = caligrama.dibujar(LOGO, "abc", ancho=30)
+    color = caligrama.dibujar(LOGO, "abc", ancho=30, color=True)
+    assert re.sub(r"\x1b\[[\d;]*m", "", color) == plano
+    tonos = set(re.findall(r"\x1b\[38;2;(\d+);(\d+);(\d+)m", color))
+    # Logo azul y amarillo: hay tonos de los dos.
+    assert any(int(b) > int(r) for r, _, b in tonos)
+    assert any(int(r) > int(b) for r, _, b in tonos)
+    svg = caligrama.a_svg(color)
+    assert "\x1b" not in svg and svg.count("fill=") > 2
+    r = _cli(str(LOGO), "-w", "30", "-t", "abc", "--colores", "imagen")
+    assert r.returncode == 0 and r.stdout.rstrip("\n") == color
+    destino = tmp_path / "c.svg"
+    r = _cli("animar", str(LOGO), "-w", "20", "-t", "ab", "--colores", "imagen", "--svg", str(destino))
+    assert r.returncode == 0, r.stderr
+    assert 'fill="#' in destino.read_text(encoding="utf-8")
+
+
 def test_reproducir(capfd):
     caligrama.reproducir(["ab", "cd"], intervalo=0, veces=1)
     salida = capfd.readouterr().out

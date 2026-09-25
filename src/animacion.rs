@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 use image::DynamicImage;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::core::{componer, Error, Opciones, Silueta, Texto};
+use crate::core::{componer, Error, Opciones, Rgb, Silueta, Texto};
 
 /// Tope de fotogramas cuando se calculan solos.
 pub const FOTOGRAMAS_MAX: usize = 240;
@@ -74,15 +74,24 @@ pub fn animar(
         p => (texto.ciclo() / mcd(texto.ciclo(), p)).min(FOTOGRAMAS_MAX),
     });
 
-    let rejillas: Vec<_> = (0..n)
-        .map(|i| {
-            let escala = 1.0 - an.latido * (1.0 - pulso(i as f32 / n as f32));
-            silueta.rejilla_escalada(columnas, escala)
-        })
+    let escalas: Vec<f32> = (0..n)
+        .map(|i| 1.0 - an.latido * (1.0 - pulso(i as f32 / n as f32)))
         .collect();
+    let rejillas: Vec<_> = escalas
+        .iter()
+        .map(|&e| silueta.rejilla_escalada(columnas, e))
+        .collect();
+    let colores: Vec<_> = if op.color {
+        escalas
+            .iter()
+            .map(|&e| silueta.colores(columnas, e))
+            .collect()
+    } else {
+        Vec::new()
+    };
     let desfases: Vec<usize> = (0..n).map(|i| op.desfase + i * an.paso).collect();
     // `componer` recorta todos con los mismos márgenes: mismo número de filas.
-    componer(&rejillas, &texto, &desfases)
+    componer(&rejillas, &colores, &texto, &desfases)
 }
 
 /// Color `#rgb` o `#rrggbb`.
@@ -116,26 +125,60 @@ fn mezclar(colores: &[[u8; 3]], t: f32) -> [u8; 3] {
     [0, 1, 2].map(|k| (a[k] as f32 + (b[k] as f32 - a[k] as f32) * f).round() as u8)
 }
 
-/// Pinta un fotograma con un degradado horizontal (ANSI truecolor).
+/// Grafemas de una línea con el color ANSI truecolor que traigan
+/// (`dibujar(..., color=True)`). Ignora cualquier otra secuencia de escape.
+pub fn celdas(linea: &str) -> Vec<(&str, Option<Rgb>)> {
+    let mut out = Vec::new();
+    let mut color = None;
+    let mut resto = linea;
+    while !resto.is_empty() {
+        if let Some(esc) = resto.strip_prefix("\x1b[") {
+            let fin = esc
+                .find(|c: char| c.is_ascii_alphabetic())
+                .unwrap_or(esc.len());
+            let params: Vec<&str> = esc[..fin].split(';').collect();
+            match params.as_slice() {
+                ["38", "2", r, v, a] => {
+                    color = [r, v, a]
+                        .map(|c| c.parse::<u8>().ok())
+                        .iter()
+                        .copied()
+                        .collect::<Option<Vec<u8>>>()
+                        .map(|c| [c[0], c[1], c[2]]);
+                }
+                ["0"] | [""] => color = None,
+                _ => {}
+            }
+            resto = &esc[(fin + 1).min(esc.len())..];
+            continue;
+        }
+        let corte = resto.find('\x1b').unwrap_or(resto.len());
+        out.extend(resto[..corte].graphemes(true).map(|g| (g, color)));
+        resto = &resto[corte..];
+    }
+    out
+}
+
+/// Pinta un fotograma con un degradado horizontal (ANSI truecolor). Sin
+/// colores lo deja tal cual (con el color que ya traiga).
 pub fn colorear(fotograma: &str, colores: &[[u8; 3]]) -> String {
     if colores.is_empty() {
         return fotograma.to_string();
     }
-    let ancho = fotograma
-        .lines()
-        .map(|l| l.graphemes(true).count())
-        .max()
-        .unwrap_or(1)
-        .max(2);
+    let lineas: Vec<Vec<&str>> = fotograma
+        .split('\n')
+        .map(|l| celdas(l).into_iter().map(|(g, _)| g).collect())
+        .collect();
+    let ancho = lineas.iter().map(Vec::len).max().unwrap_or(1).max(2);
     let mut s = String::new();
-    for (j, linea) in fotograma.split('\n').enumerate() {
+    for (j, linea) in lineas.iter().enumerate() {
         if j > 0 {
             s.push('\n');
         }
         let mut previo = None;
-        for (c, g) in linea.graphemes(true).enumerate() {
+        for (c, g) in linea.iter().enumerate() {
             let [r, v, a] = mezclar(colores, c as f32 / (ancho - 1) as f32);
-            if g != " " && previo != Some([r, v, a]) {
+            if *g != " " && previo != Some([r, v, a]) {
                 let _ = write!(s, "\x1b[38;2;{r};{v};{a}m");
                 previo = Some([r, v, a]);
             }
@@ -202,7 +245,7 @@ pub fn a_svg(fotogramas: &[String], e: &EstiloSvg) -> Result<String, Error> {
     let cols = fotogramas
         .iter()
         .flat_map(|f| f.split('\n'))
-        .map(|l| l.graphemes(true).count())
+        .map(|l| celdas(l).len())
         .max()
         .unwrap_or(0);
     let filas = fotogramas
@@ -280,25 +323,28 @@ pub fn a_svg(fotogramas: &[String], e: &EstiloSvg) -> Result<String, Error> {
         for (j, linea) in foto.split('\n').enumerate() {
             let mut tramos = String::new();
             let mut palabra = String::new();
-            let mut inicio = 0;
-            for (c, g) in linea
-                .graphemes(true)
-                .chain(std::iter::once(" "))
+            let (mut inicio, mut tono) = (0, None);
+            // Un tramo por palabra y color: cada cambio de color abre otro.
+            for (c, (g, color)) in celdas(linea)
+                .into_iter()
+                .chain(std::iter::once((" ", None)))
                 .enumerate()
             {
-                if g.trim().is_empty() {
-                    if !palabra.is_empty() {
-                        let _ = write!(
-                            tramos,
-                            r#"<tspan x="{:.1}">{}</tspan>"#,
-                            pad + inicio as f32 * cw,
-                            escapar(&palabra)
-                        );
-                        palabra.clear();
-                    }
-                } else {
+                let blanco = g.trim().is_empty();
+                if !palabra.is_empty() && (blanco || color != tono) {
+                    let relleno = tono.map_or(String::new(), |t| format!(r#" fill="{}""#, hex(t)));
+                    let _ = write!(
+                        tramos,
+                        r#"<tspan x="{:.1}"{relleno}>{}</tspan>"#,
+                        pad + inicio as f32 * cw,
+                        escapar(&palabra)
+                    );
+                    palabra.clear();
+                }
+                if !blanco {
                     if palabra.is_empty() {
                         inicio = c;
+                        tono = color;
                     }
                     palabra.push_str(g);
                 }
@@ -408,6 +454,57 @@ mod tests {
         assert!(s.contains("\x1b[38;2;0;0;255m"));
         assert_eq!(s.matches("\x1b[0m").count(), 2);
         assert_eq!(colorear("ab", &[]), "ab");
+    }
+
+    #[test]
+    fn celdas_lee_el_color_ansi() {
+        let c = celdas("\x1b[38;2;1;2;3mab \x1b[38;2;4;5;6mc\x1b[0md");
+        assert_eq!(
+            c,
+            vec![
+                ("a", Some([1, 2, 3])),
+                ("b", Some([1, 2, 3])),
+                (" ", Some([1, 2, 3])),
+                ("c", Some([4, 5, 6])),
+                ("d", None),
+            ]
+        );
+        // El degradado explícito reemplaza el color que ya traía.
+        let s = colorear("\x1b[38;2;1;2;3mab\x1b[0m", &[[9, 9, 9]]);
+        assert_eq!(s, "\x1b[38;2;9;9;9mab\x1b[0m");
+    }
+
+    #[test]
+    fn svg_con_color_de_imagen() {
+        let f = vec!["\x1b[38;2;255;0;0mab\x1b[38;2;0;0;255mc\x1b[0m d".to_string()];
+        let svg = a_svg(&f, &EstiloSvg::default()).unwrap();
+        assert!(
+            svg.contains(r##"<tspan x="0.0" fill="#ff0000">ab</tspan>"##),
+            "{svg}"
+        );
+        assert!(svg.contains(r##"fill="#0000ff">c</tspan>"##));
+        // Sin color propio, la palabra usa el relleno general.
+        assert!(svg.contains(r#"<tspan x="33.6">d</tspan>"#));
+        assert!(!svg.contains("\x1b"));
+    }
+
+    #[test]
+    fn animar_con_color_mide_igual() {
+        let an = Animacion {
+            fotogramas: Some(6),
+            paso: 1,
+            latido: 0.3,
+        };
+        let o = Opciones {
+            color: true,
+            ..op()
+        };
+        let con = animar(&disco(), "xy", &o, &an).unwrap();
+        let sin = animar(&disco(), "xy", &op(), &an).unwrap();
+        for (c, s) in con.iter().zip(&sin) {
+            assert!(c.contains("\x1b[38;2;0;0;0m"));
+            assert_eq!(colorear(c, &[[1, 1, 1]]), colorear(s, &[[1, 1, 1]]));
+        }
     }
 
     #[test]

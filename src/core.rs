@@ -79,6 +79,8 @@ pub struct Opciones {
     pub suavizar: usize,
     /// Letra del texto por la que se empieza a escribir (para hacerlo fluir).
     pub desfase: usize,
+    /// Pintar cada letra (ANSI truecolor) con el color de la imagen en su celda.
+    pub color: bool,
 }
 
 impl Default for Opciones {
@@ -93,6 +95,7 @@ impl Default for Opciones {
             huecos: false,
             suavizar: 0,
             desfase: 0,
+            color: false,
         }
     }
 }
@@ -134,14 +137,19 @@ impl From<image::ImageError> for Error {
     }
 }
 
-/// Máscara binaria: `true` = píxel de figura.
+/// Color RGB.
+pub type Rgb = [u8; 3];
+
+/// Máscara binaria (`true` = píxel de figura) y el color de cada píxel.
 pub struct Mascara {
     pub ancho: usize,
     pub alto: usize,
     pub datos: Vec<bool>,
+    pub color: Vec<Rgb>,
 }
 
 impl Mascara {
+    #[cfg(test)]
     fn get(&self, x: usize, y: usize) -> bool {
         self.datos[y * self.ancho + x]
     }
@@ -150,22 +158,26 @@ impl Mascara {
     /// lienzo (vecino más cercano). Con `s < 1` nada se sale del lienzo.
     fn escalar(&self, s: f32) -> Mascara {
         let (cx, cy) = (self.ancho as f32 / 2.0, self.alto as f32 / 2.0);
-        let datos = (0..self.alto)
+        let origen: Vec<Option<usize>> = (0..self.alto)
             .flat_map(|y| (0..self.ancho).map(move |x| (x, y)))
             .map(|(x, y)| {
                 let sx = cx + (x as f32 + 0.5 - cx) / s;
                 let sy = cy + (y as f32 + 0.5 - cy) / s;
-                sx >= 0.0
-                    && sy >= 0.0
-                    && (sx as usize) < self.ancho
-                    && (sy as usize) < self.alto
-                    && self.get(sx as usize, sy as usize)
+                (sx >= 0.0 && sy >= 0.0 && (sx as usize) < self.ancho && (sy as usize) < self.alto)
+                    .then(|| sy as usize * self.ancho + sx as usize)
             })
             .collect();
         Mascara {
             ancho: self.ancho,
             alto: self.alto,
-            datos,
+            datos: origen
+                .iter()
+                .map(|o| o.is_some_and(|i| self.datos[i]))
+                .collect(),
+            color: origen
+                .iter()
+                .map(|o| o.map_or([0; 3], |i| self.color[i]))
+                .collect(),
         }
     }
 }
@@ -182,7 +194,17 @@ pub fn dibujar(img: &DynamicImage, texto: &str, op: &Opciones) -> Result<String,
     let silueta = Silueta::nueva(img, op)?;
     let texto = Texto::nuevo(texto, op.espacios, op.repetir)?;
     let columnas = silueta.columnas(op.ancho, texto.letras)?;
-    let mut fotos = componer(&[silueta.rejilla(columnas)], &texto, &[op.desfase])?;
+    let colores = if op.color {
+        vec![silueta.colores(columnas, 1.0)]
+    } else {
+        Vec::new()
+    };
+    let mut fotos = componer(
+        &[silueta.rejilla(columnas)],
+        &colores,
+        &texto,
+        &[op.desfase],
+    )?;
     Ok(fotos.remove(0))
 }
 
@@ -231,9 +253,11 @@ impl Texto {
 
 /// Escribe el texto en cada rejilla (fotograma), empezando en su desfase.
 /// Todas se recortan con los mismos márgenes (la unión de sus figuras), así
-/// que los fotogramas quedan alineados entre sí.
+/// que los fotogramas quedan alineados entre sí. Si hay `colores` (uno por
+/// rejilla, misma forma), cada letra lleva su color en ANSI truecolor.
 pub(crate) fn componer(
     rejillas: &[Vec<Vec<bool>>],
+    colores: &[Vec<Vec<Rgb>>],
     texto: &Texto,
     desfases: &[usize],
 ) -> Result<Vec<String>, Error> {
@@ -257,29 +281,55 @@ pub(crate) fn componer(
     Ok(rejillas
         .iter()
         .zip(desfases)
-        .map(|(rejilla, &desfase)| {
+        .enumerate()
+        .map(|(k, (rejilla, &desfase))| {
             let mut i = desfase;
             (primera..=ultima)
                 .map(|y| {
                     let fila = rejilla.get(y).map_or(&[][..], Vec::as_slice);
-                    let linea: String = fila
+                    let tonos = colores.get(k).and_then(|c| c.get(y));
+                    let mut celdas: Vec<(&str, Option<Rgb>)> = fila
                         .iter()
+                        .enumerate()
                         .skip(margen)
-                        .map(|&b| {
+                        .map(|(x, &b)| {
                             if b {
                                 i += 1;
-                                texto.en(i - 1)
+                                (texto.en(i - 1), tonos.map(|t| t[x]))
                             } else {
-                                " "
+                                (" ", None)
                             }
                         })
                         .collect();
-                    linea.trim_end().to_string()
+                    while celdas.last().is_some_and(|c| c.0.trim().is_empty()) {
+                        celdas.pop();
+                    }
+                    pintar(&celdas)
                 })
                 .collect::<Vec<_>>()
                 .join("\n")
         })
         .collect())
+}
+
+/// Une las celdas de una línea; cambia el color ANSI solo cuando hace falta
+/// (los espacios no lo necesitan) y lo resetea al final.
+fn pintar(celdas: &[(&str, Option<Rgb>)]) -> String {
+    let mut s = String::new();
+    let mut previo = None;
+    for &(g, color) in celdas {
+        if let Some([r, v, a]) = color.filter(|_| !g.trim().is_empty()) {
+            if previo != color {
+                s.push_str(&format!("\x1b[38;2;{r};{v};{a}m"));
+                previo = color;
+            }
+        }
+        s.push_str(g);
+    }
+    if previo.is_some() {
+        s.push_str("\x1b[0m");
+    }
+    s
 }
 
 /// Texto tal como se escribirá en las celdas (sin el separador de repetición).
@@ -324,6 +374,14 @@ impl Silueta {
 
     pub fn rejilla(&self, columnas: usize) -> Vec<Vec<bool>> {
         rejilla(&self.mascara, columnas, self.aspecto)
+    }
+
+    /// Color de cada celda de la figura escalada `escala` veces.
+    pub fn colores(&self, columnas: usize, escala: f32) -> Vec<Vec<Rgb>> {
+        if escala == 1.0 {
+            return colores(&self.mascara, columnas, self.aspecto);
+        }
+        colores(&self.mascara.escalar(escala), columnas, self.aspecto)
     }
 
     /// Rejilla de la figura escalada `escala` veces (1.0 = tamaño original).
@@ -490,6 +548,7 @@ pub fn mascara(img: &RgbaImage, op: &Opciones) -> Mascara {
         ancho: w,
         alto: h,
         datos,
+        color: img.pixels().map(|p| [p[0], p[1], p[2]]).collect(),
     }
 }
 
@@ -634,6 +693,36 @@ fn otsu(valores: &[u8]) -> u8 {
 /// Reduce la máscara a `columnas` celdas; una celda es figura si al menos la
 /// mitad de sus píxeles lo son.
 pub fn rejilla(m: &Mascara, columnas: usize, aspecto: f32) -> Vec<Vec<bool>> {
+    muestrear(m, columnas, aspecto, |pixeles| {
+        let (total, llenos) = pixeles.fold((0, 0), |(t, l), i| (t + 1, l + m.datos[i] as usize));
+        llenos * 2 >= total
+    })
+}
+
+/// Color medio de los píxeles de figura de cada celda (misma forma que
+/// `rejilla`). Se promedia en luz lineal para que una celda mitad amarilla y
+/// mitad azul no salga más oscura de lo que se ve.
+pub fn colores(m: &Mascara, columnas: usize, aspecto: f32) -> Vec<Vec<Rgb>> {
+    let lineal = |c: u8| (c as f32 / 255.0).powf(2.2);
+    muestrear(m, columnas, aspecto, |pixeles| {
+        let (mut suma, mut n) = ([0f32; 3], 0);
+        for i in pixeles.filter(|&i| m.datos[i]) {
+            for (s, &c) in suma.iter_mut().zip(&m.color[i]) {
+                *s += lineal(c);
+            }
+            n += 1;
+        }
+        suma.map(|s| ((s / n.max(1) as f32).powf(1.0 / 2.2) * 255.0).round() as u8)
+    })
+}
+
+/// Aplica `celda` a los índices de píxel de cada celda de la rejilla.
+fn muestrear<T>(
+    m: &Mascara,
+    columnas: usize,
+    aspecto: f32,
+    celda: impl Fn(&mut dyn Iterator<Item = usize>) -> T,
+) -> Vec<Vec<T>> {
     let celda_w = m.ancho as f32 / columnas as f32;
     let celda_h = celda_w * aspecto;
     let filas = ((m.alto as f32 / celda_h).round() as usize).max(1);
@@ -650,13 +739,10 @@ pub fn rejilla(m: &Mascara, columnas: usize, aspecto: f32) -> Vec<Vec<bool>> {
             (0..columnas)
                 .map(|c| {
                     let xs = rango(c, celda_w, m.ancho);
-                    let total = xs.len() * ys.len();
-                    let llenos = ys
+                    let mut pixeles = ys
                         .clone()
-                        .flat_map(|y| xs.clone().map(move |x| (x, y)))
-                        .filter(|&(x, y)| m.get(x, y))
-                        .count();
-                    llenos * 2 >= total
+                        .flat_map(|y| xs.clone().map(move |x| y * m.ancho + x));
+                    celda(&mut pixeles)
                 })
                 .collect()
         })
@@ -672,7 +758,7 @@ pub fn rellenar(
     espacios: Espacios,
 ) -> Result<String, Error> {
     let texto = Texto::nuevo(texto, espacios, repetir)?;
-    let mut fotos = componer(&[rejilla.to_vec()], &texto, &[0])?;
+    let mut fotos = componer(&[rejilla.to_vec()], &[], &texto, &[0])?;
     Ok(fotos.remove(0))
 }
 
@@ -724,6 +810,38 @@ mod tests {
         assert!(dibujar(&circulo(100, transp, tinta), "x", &op)
             .unwrap()
             .contains('x'));
+    }
+
+    #[test]
+    fn color_sale_de_la_imagen_y_no_cambia_el_texto() {
+        // Mitad izquierda roja, derecha azul, sobre blanco.
+        let img = DynamicImage::ImageRgba8(RgbaImage::from_fn(100, 50, |x, y| match (x, y) {
+            (10..50, 10..40) => Rgba([255, 0, 0, 255]),
+            (50..90, 10..40) => Rgba([0, 0, 255, 255]),
+            _ => BLANCO,
+        }));
+        let op = Opciones {
+            ancho: Ancho::Fijo(20),
+            ..Default::default()
+        };
+        let plano = dibujar(&img, "abc", &op).unwrap();
+        let color = dibujar(&img, "abc", &Opciones { color: true, ..op }).unwrap();
+        let linea = color.lines().next().unwrap();
+        assert!(linea.starts_with("\x1b[38;2;255;0;0m"), "{linea:?}");
+        assert!(linea.contains("\x1b[38;2;0;0;255m") && linea.ends_with("\x1b[0m"));
+        // Un solo cambio de color por tramo: rojo y azul, nada más.
+        assert_eq!(linea.matches("\x1b[38").count(), 2);
+        let sin_ansi = color
+            .split('\n')
+            .map(|l| {
+                crate::animacion::celdas(l)
+                    .into_iter()
+                    .map(|(g, _)| g)
+                    .collect()
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+        assert_eq!(sin_ansi, plano);
     }
 
     #[test]

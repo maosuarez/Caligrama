@@ -38,6 +38,7 @@ def dibujar(
     huecos: bool = False,
     suavizar: int = 0,
     desfase: int = 0,
+    color: bool = False,
 ) -> str:
     """Escribe `texto` dentro de la silueta de `imagen` y devuelve el dibujo."""
 
@@ -69,6 +70,7 @@ def animar(
     huecos: bool = False,
     suavizar: int = 0,
     desfase: int = 0,
+    color: bool = False,
 ) -> list[str]:
     """Fotogramas alineados: el texto avanza `paso` letras y la figura late con `latido`."""
 
@@ -80,7 +82,7 @@ def a_svg(
     tamano: float = 14.0,
     aspecto: float = 2.0,
 ) -> str:
-    """SVG (animado si hay varios fotogramas) con degradado horizontal."""
+    """SVG (animado si hay varios fotogramas) con degradado horizontal o el color ANSI que traigan."""
 
 def reproducir(
     fotogramas: Union[str, Sequence[str]],
