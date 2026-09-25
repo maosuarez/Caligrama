@@ -7,3 +7,4 @@ live-test/
 .playwright-mcp/
 .code-review-graph/
 dist/
+bench/resultados/
