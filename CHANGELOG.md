@@ -4,6 +4,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [0.3.0] - 2026-09-24
+
+### Añadido
+
+- `color=True` en `dibujar` y `animar` (`--colores imagen` en el CLI): cada letra lleva, en ANSI de 24 bits, el color medio de la imagen en su celda.
+- `a_svg` y `reproducir` respetan el color ANSI que traigan los fotogramas; en el SVG cada tramo de palabra lleva su `fill`.
+
 ## [0.2.0] - 2026-09-24
 
 ### Añadido
@@ -34,6 +41,7 @@ Primera versión.
 - `ancho="auto"`, `espacios="normal"|"sin"|"todos"`, `suavizar`, `invertir`, `umbral`, `aspecto`, `repetir`.
 - Wheel `abi3` para Python 3.9+ sin dependencias de Python.
 
-[Sin publicar]: https://github.com/maosuarez/caligrama/compare/v0.2.0...HEAD
+[Sin publicar]: https://github.com/maosuarez/caligrama/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/maosuarez/caligrama/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/maosuarez/caligrama/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/maosuarez/caligrama/releases/tag/v0.1.0

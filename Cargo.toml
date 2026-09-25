@@ -1,6 +1,6 @@
 [package]
 name = "caligrama"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Escribe un poema dentro de la silueta de una imagen y lo devuelve como texto. Núcleo en Rust de la librería de Python caligrama."
 license = "MIT"
