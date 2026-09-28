@@ -4,6 +4,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Cambiado
+
+- La documentación se publica con GitHub Pages desde este repo (`docs/`): https://maosuarez.github.io/Caligrama/. La URL anterior (`maosuarez.com/docs/caligrama`) redirige ahí.
+
 ## [0.3.2] - 2026-09-25
 
 ### Añadido

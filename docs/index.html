@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>caligrama — Documentación</title>
+<meta name="description" content="Documentación de caligrama: instalación, API de Python, CLI, animaciones, color y recetas. / caligrama docs: install, Python API, CLI, animations, color and recipes." />
+<link rel="icon" href="card.svg" />
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #fafaf9;
+    --panel: #ffffff;
+    --ink: #0e1116;
+    --sub: rgba(14, 17, 22, 0.66);
+    --faint: rgba(14, 17, 22, 0.45);
+    --line: rgba(14, 17, 22, 0.1);
+    --accent: #ff2d55;
+    --accent-deep: #c8103a;
+    --accent-soft: rgba(255, 45, 85, 0.08);
+    --code-bg: #14111a;
+    --code-ink: #f3eef7;
+    --code-faint: #a79db3;
+    --inline-bg: rgba(14, 17, 22, 0.06);
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Idioma: el contenido de ambos idiomas vive en la misma página. */
+  html[data-lang="es"] [data-l="en"],
+  html[data-lang="en"] [data-l="es"] { display: none !important; }
+
+  /* Barra superior */
+  .top {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 20px;
+    background: rgba(250, 250, 249, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand a.home { color: var(--faint); font-family: var(--mono); font-size: 12.5px; text-decoration: none; white-space: nowrap; }
+  .brand a.home:hover { color: var(--ink); }
+  .brand .name { font-family: var(--mono); font-weight: 600; font-size: 14px; white-space: nowrap; }
+  .brand .ver { font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); }
+  .lang button {
+    border: 0; background: transparent; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--faint); padding: 5px 11px; border-radius: 999px; min-height: 30px;
+  }
+  .lang button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .menu-btn {
+    display: none; border: 1px solid var(--line); background: var(--panel); border-radius: 8px;
+    font-family: var(--mono); font-size: 12px; padding: 6px 10px; cursor: pointer; min-height: 36px; color: var(--ink);
+  }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  nav.toc { position: sticky; top: 64px; align-self: start; max-height: calc(100vh - 64px); overflow-y: auto; padding: 32px 0 48px; }
+  nav.toc .toc-title { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--faint); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; }
+  nav.toc li { margin: 0; }
+  nav.toc a {
+    display: block; padding: 5px 10px; border-left: 2px solid transparent;
+    color: var(--sub); font-size: 14px; text-decoration: none; line-height: 1.4;
+  }
+  nav.toc a:hover { color: var(--ink); }
+  nav.toc a.active { color: var(--accent-deep); border-left-color: var(--accent); background: var(--accent-soft); }
+  nav.toc .sub a { padding-left: 22px; font-size: 13px; }
+
+  main { min-width: 0; padding: 40px 0 120px; max-width: 800px; }
+
+  .hero { margin-bottom: 36px; }
+  .eyebrow {
+    display: inline-block; font-size: 12.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; margin-bottom: 16px;
+  }
+  h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .lead { font-size: 18px; color: var(--sub); margin: 0 0 20px; }
+  .hero-img { display: block; width: 100%; max-width: 440px; margin: 20px 0 8px; border-radius: 14px; background: #14111a; }
+  .caption { color: var(--faint); font-size: 13px; margin: 0 0 12px; }
+
+  h2 {
+    font-size: 26px; line-height: 1.2; letter-spacing: -0.01em;
+    margin: 64px 0 14px; padding-top: 24px; border-top: 1px solid var(--line);
+  }
+  h2 .num { font-family: var(--mono); font-size: 14px; color: var(--accent); margin-right: 10px; vertical-align: 3px; }
+  h3 { font-size: 18.5px; margin: 36px 0 10px; }
+  h4 { font-size: 15.5px; margin: 24px 0 8px; }
+  p, li { color: var(--sub); font-size: 15.5px; }
+  p { margin: 0 0 14px; }
+  ul, ol.list { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); font-weight: 600; }
+  a { color: var(--accent-deep); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h2 a.anchor, h3 a.anchor { color: var(--faint); opacity: 0; margin-left: 6px; font-weight: 400; }
+  h2:hover a.anchor, h3:hover a.anchor { opacity: 1; }
+
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--inline-bg); padding: 1px 5px; border-radius: 4px; color: var(--ink); overflow-wrap: anywhere; }
+  .code { position: relative; margin: 0 0 18px; }
+  .code .label {
+    position: absolute; top: 0; left: 14px; transform: translateY(-50%);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 4px;
+  }
+  pre {
+    margin: 0; background: var(--code-bg); color: var(--code-ink);
+    border-radius: 12px; padding: 20px 18px 16px; overflow-x: auto;
+    font-family: var(--mono); font-size: 13.5px; line-height: 1.55; tab-size: 4;
+  }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; overflow-wrap: normal; }
+  pre .c { color: var(--code-faint); }
+  pre .p { color: #ff7a93; user-select: none; }
+  pre.out { background: #f1eff4; color: var(--ink); border: 1px solid var(--line); }
+  .copy {
+    position: absolute; top: 8px; right: 8px;
+    border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: var(--code-ink);
+    font-family: var(--mono); font-size: 11px; padding: 4px 9px; border-radius: 6px; cursor: pointer; opacity: 0.75;
+  }
+  .copy:hover { opacity: 1; }
+  .code.is-out .copy { display: none; }
+
+  .table-wrap { overflow-x: auto; margin: 0 0 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); color: var(--sub); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th { color: var(--ink); font-weight: 600; font-size: 12.5px; background: #f6f5f3; white-space: nowrap; }
+  td code { white-space: nowrap; }
+  td .c { color: var(--faint); font-size: 12.5px; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; margin: 0 0 16px; }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .note { border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 10px 10px 0; padding: 12px 16px; margin: 0 0 18px; }
+  .note p { margin: 0; color: var(--ink); font-size: 14.5px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0 0 18px; }
+  .grid .card { margin: 0; }
+  .grid .card h4 { margin: 0 0 6px; }
+  .grid .card p { font-size: 14px; }
+  figure { margin: 0 0 20px; }
+  figure img { display: block; max-width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #14111a; }
+
+  footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--faint); font-size: 13px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
+    .menu-btn { display: inline-block; }
+    nav.toc {
+      display: none; position: fixed; top: 57px; left: 0; right: 0; bottom: 0; z-index: 9;
+      max-height: none; background: var(--paper); padding: 20px 16px 48px;
+    }
+    body.toc-open nav.toc { display: block; }
+    body.toc-open { overflow: hidden; }
+    main { padding-top: 28px; }
+    .top { padding: 10px 16px; }
+    .brand a.home { display: none; }
+    pre { font-size: 12.5px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <a class="home" href="https://www.maosuarez.com/es" data-home>← maosuarez.com</a>
+    <span class="name">caligrama</span>
+    <span class="ver">v0.3.2</span>
+  </div>
+  <div class="top-actions">
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="toc">
+      <span data-l="es">Índice</span><span data-l="en">Contents</span>
+    </button>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+      <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- ===================== ÍNDICE / CONTENTS ===================== -->
+  <nav class="toc" id="toc">
+    <div data-l="es">
+      <p class="toc-title">Documentación</p>
+      <ol>
+        <li><a href="#es-inicio">Qué es caligrama</a></li>
+        <li><a href="#es-instalacion">Instalación</a></li>
+        <li><a href="#es-rapido">Inicio rápido</a></li>
+        <li><a href="#es-entradas">Imagen y texto de entrada</a></li>
+        <li><a href="#es-dibujar">dibujar()</a></li>
+        <li><a href="#es-espacios">Modos de espacios</a></li>
+        <li><a href="#es-silueta">Controlar la silueta</a></li>
+        <li><a href="#es-analizar">Diseñar el texto: analizar()</a></li>
+        <li><a href="#es-color">Color</a></li>
+        <li><a href="#es-animar">Animaciones</a></li>
+        <li class="sub"><a href="#es-animar-fn">animar()</a></li>
+        <li class="sub"><a href="#es-reproducir">reproducir()</a></li>
+        <li class="sub"><a href="#es-svg">a_svg()</a></li>
+        <li><a href="#es-cli">Referencia del CLI</a></li>
+        <li><a href="#es-recetas">Recetas</a></li>
+        <li><a href="#es-problemas">Problemas frecuentes</a></li>
+        <li><a href="#es-errores">Errores</a></li>
+        <li><a href="#es-tipos">Tipos y versión</a></li>
+      </ol>
+    </div>
+    <div data-l="en">
+      <p class="toc-title">Documentation</p>
+      <ol>
+        <li><a href="#en-intro">What caligrama is</a></li>
+        <li><a href="#en-install">Installation</a></li>
+        <li><a href="#en-quick">Quick start</a></li>
+        <li><a href="#en-inputs">Input image and text</a></li>
+        <li><a href="#en-dibujar">dibujar()</a></li>
+        <li><a href="#en-spaces">Space modes</a></li>
+        <li><a href="#en-silhouette">Controlling the silhouette</a></li>
+        <li><a href="#en-analizar">Designing the text: analizar()</a></li>
+        <li><a href="#en-color">Color</a></li>
+        <li><a href="#en-animate">Animations</a></li>
+        <li class="sub"><a href="#en-animar-fn">animar()</a></li>
+        <li class="sub"><a href="#en-reproducir">reproducir()</a></li>
+        <li class="sub"><a href="#en-svg">a_svg()</a></li>
+        <li><a href="#en-cli">CLI reference</a></li>
+        <li><a href="#en-recipes">Recipes</a></li>
+        <li><a href="#en-troubleshooting">Troubleshooting</a></li>
+        <li><a href="#en-errors">Errors</a></li>
+        <li><a href="#en-types">Types and version</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <main>
+  <!-- ================================================================= -->
+  <!-- ============================ ESPAÑOL ============================ -->
+  <!-- ================================================================= -->
+  <article data-l="es" lang="es">
+    <section class="hero" id="es-inicio">
+      <span class="eyebrow">Documentación · caligrama</span>
+      <h1>Escribe un texto con la forma de una imagen</h1>
+      <p class="lead">
+        caligrama recibe una imagen y un texto, detecta la silueta del objeto y escribe el texto dentro,
+        letra por letra. Devuelve un <code>str</code> normal que puedes imprimir, pegar en un chat, guardar
+        en un archivo o convertir en un SVG animado.
+      </p>
+      <img class="hero-img" src="assets/latido.svg" alt="Un corazón que late, escrito con un poema que corre por dentro" />
+      <p class="caption">Este corazón lo genera la propia librería con <code>caligrama.animar(..., latido=0.22, paso=3)</code>.</p>
+      <div class="grid">
+        <div class="card"><h4>100 % Rust</h4><p>Decodificar, segmentar y componer se hace en Rust. El paquete de Python no tiene dependencias.</p></div>
+        <div class="card"><h4>Offline</h4><p>No usa red. La imagen y el texto nunca salen de tu máquina.</p></div>
+        <div class="card"><h4>API y CLI</h4><p><code>import caligrama</code> desde Python o el comando <code>caligrama</code> en la terminal. Hacen lo mismo.</p></div>
+      </div>
+      <p>
+        La API está en español: las funciones son <code>dibujar</code>, <code>analizar</code>, <code>animar</code>,
+        <code>a_svg</code> y <code>reproducir</code>, y los argumentos se llaman <code>ancho</code>, <code>espacios</code>,
+        <code>huecos</code>, etc. Esta página explica cada uno con ejemplos que puedes copiar.
+      </p>
+    </section>
+
+    <h2 id="es-instalacion"><span class="num">01</span>Instalación<a class="anchor" href="#es-instalacion">#</a></h2>
+    <div class="code"><pre><code><span class="p">$ </span>pip install caligrama</code></pre></div>
+    <ul>
+      <li><strong>Python 3.9 o superior.</strong> Se publica una sola wheel <code>abi3</code> que sirve para todas las versiones.</li>
+      <li><strong>Plataformas:</strong> Linux (x86_64 y aarch64, glibc y musl), macOS (Intel y Apple Silicon) y Windows x64.</li>
+      <li><strong>Sin dependencias:</strong> no instala Pillow, numpy ni nada más.</li>
+      <li><strong>Formatos de imagen:</strong> PNG, JPEG, GIF, BMP y WebP.</li>
+    </ul>
+    <p>Comprueba que quedó instalado:</p>
+    <div class="code"><pre><code><span class="p">$ </span>python -c "import caligrama; print(caligrama.__version__)"
+<span class="p">$ </span>caligrama --help</code></pre></div>
+    <p>Con <a href="https://docs.astral.sh/uv/">uv</a> o pipx puedes usar solo el comando, sin tocar tu entorno:</p>
+    <div class="code"><pre><code><span class="p">$ </span>uvx caligrama foto.png -t "hola"
+<span class="p">$ </span>pipx install caligrama</code></pre></div>
+
+    <h2 id="es-rapido"><span class="num">02</span>Inicio rápido<a class="anchor" href="#es-rapido">#</a></h2>
+    <h3>Desde Python</h3>
+    <div class="code"><span class="label">python</span><pre><code>import caligrama
+
+dibujo = caligrama.dibujar("logo.png", "Hola mundo, esto es caligrama", ancho=30)
+print(dibujo)</code></pre></div>
+    <p>Con el logo de Python (fondo blanco, serpientes azul y amarilla) sale esto:</p>
+    <div class="code is-out"><pre class="out"><code>         Hola mundo,
+         esto es cali
+       grama Hola mund
+        o, esto es cal
+  igrama Hola mundo, esto es
+  caligrama Hola mund o, est
+o es caligrama Hola m undo, e
+sto es ca ligrama Hola mundo,
+ esto e s caligrama Hola mund
+ o, est o es caligrama Hola
+  mundo , esto es caligrama
+         Hola mundo,</code></pre></div>
+    <p>El texto se repite hasta llenar la figura. Si prefieres que salga una sola vez, usa <code>ancho="auto"</code> y <code>repetir=False</code> (más abajo se explica).</p>
+
+    <h3>Desde la terminal</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama logo.png -w 30 -t "Hola mundo, esto es caligrama"
+<span class="p">$ </span>caligrama logo.png -f poema.txt          <span class="c"># el texto desde un archivo</span>
+<span class="p">$ </span>cat poema.txt | caligrama logo.png       <span class="c"># o desde stdin</span>
+<span class="p">$ </span>caligrama logo.png -f poema.txt > tarjeta.txt   <span class="c"># guardar el resultado</span></code></pre></div>
+
+    <h2 id="es-entradas"><span class="num">03</span>Imagen y texto de entrada<a class="anchor" href="#es-entradas">#</a></h2>
+    <h3>La imagen</h3>
+    <p>El argumento <code>imagen</code> acepta tres cosas:</p>
+    <div class="code"><span class="label">python</span><pre><code>from pathlib import Path
+import caligrama
+
+caligrama.dibujar("gato.png", texto)                  <span class="c"># ruta como str</span>
+caligrama.dibujar(Path("fotos") / "gato.png", texto)  <span class="c"># cualquier os.PathLike</span>
+caligrama.dibujar(Path("gato.png").read_bytes(), texto)  <span class="c"># bytes crudos del archivo</span></code></pre></div>
+    <p>Los bytes sirven para imágenes que no están en disco: una descarga con <code>requests</code>, un upload de Flask/FastAPI o un blob de base de datos. El formato se detecta por el contenido, no por la extensión.</p>
+    <div class="card">
+      <p><strong>Qué imagen funciona mejor:</strong> un objeto claro sobre un fondo liso (blanco, negro, un color plano o transparente). Logos, siluetas, iconos, ilustraciones y fotos de producto dan muy buen resultado. En fotos con fondo complejo conviene recortar el objeto antes o usar un PNG con transparencia.</p>
+    </div>
+
+    <h3>El texto</h3>
+    <ul>
+      <li>Cualquier <code>str</code> de Python. Se recorre por <strong>grafemas</strong>, así que tildes, ñ, ü y emojis compuestos (👩‍❤️‍👨, 🇨🇴) ocupan una celda y no se parten.</li>
+      <li>Los saltos de línea y tabulaciones se tratan como espacios (ver <a href="#es-espacios">modos de espacios</a>).</li>
+      <li>Un texto vacío (o solo espacios) da <code>ValueError</code>.</li>
+    </ul>
+    <div class="note"><p>Los emojis y los caracteres CJK suelen ocupar dos columnas en la terminal, así que la figura se deforma un poco donde aparecen. Para dibujos limpios, usa letras latinas.</p></div>
+
+    <h2 id="es-dibujar"><span class="num">04</span>dibujar()<a class="anchor" href="#es-dibujar">#</a></h2>
+    <p>La función principal. Devuelve el caligrama como un solo <code>str</code> con saltos de línea <code>\n</code>, sin espacios sobrantes a la derecha y sin filas vacías arriba o abajo.</p>
+    <div class="code"><span class="label">firma</span><pre><code>caligrama.dibujar(
+    imagen,                <span class="c"># str | os.PathLike | bytes</span>
+    texto,                 <span class="c"># str</span>
+    ancho=60,              <span class="c"># int | "auto"</span>
+    aspecto=2.0,
+    repetir=True,
+    espacios="normal",     <span class="c"># "normal" | "sin" | "todos"</span>
+    umbral=None,           <span class="c"># int 0-255 | None (automático)</span>
+    invertir=False,
+    huecos=False,
+    suavizar=0,
+    desfase=0,
+    color=False,
+) -> str</code></pre></div>
+    <div class="table-wrap"><table>
+      <tr><th>Argumento</th><th>CLI</th><th>Por defecto</th><th>Qué hace</th></tr>
+      <tr><td><code>ancho</code></td><td><code>-w, --ancho</code></td><td><code>60</code></td><td>Columnas del dibujo. Más ancho = más detalle y más letras. <code>"auto"</code> elige el menor ancho donde cabe todo el texto.</td></tr>
+      <tr><td><code>aspecto</code></td><td><code>--aspecto</code></td><td><code>2.0</code></td><td>Alto/ancho de un carácter. En casi todas las terminales es ~2. Si el dibujo se ve estirado en vertical, súbelo; si se ve aplastado, bájalo.</td></tr>
+      <tr><td><code>repetir</code></td><td><code>--sin-repetir</code></td><td><code>True</code></td><td>Repite el texto hasta llenar la figura. Con <code>False</code> se escribe una vez y el resto de la figura queda vacía.</td></tr>
+      <tr><td><code>espacios</code></td><td><code>--espacios</code></td><td><code>"normal"</code></td><td>Qué hacer con los espacios del texto. Ver <a href="#es-espacios">modos</a>.</td></tr>
+      <tr><td><code>umbral</code></td><td><code>--umbral</code></td><td>auto</td><td>Qué tan distinto del fondo debe ser un píxel para contar como figura (0–255).</td></tr>
+      <tr><td><code>invertir</code></td><td><code>--invertir</code></td><td><code>False</code></td><td>Escribe en el fondo y deja la figura vacía.</td></tr>
+      <tr><td><code>huecos</code></td><td><code>--con-huecos</code></td><td><code>False</code></td><td>Respeta los huecos interiores del color del fondo (el ojo de un logo, el centro de una dona).</td></tr>
+      <tr><td><code>suavizar</code></td><td><code>--suavizar</code></td><td><code>0</code></td><td>Une trazos finos o punteados antes de muestrear (radio en píxeles de la imagen original).</td></tr>
+      <tr><td><code>desfase</code></td><td><code>--desfase</code></td><td><code>0</code></td><td>Empieza a escribir N letras más adelante en el texto.</td></tr>
+      <tr><td><code>color</code></td><td><code>--colores imagen</code></td><td><code>False</code></td><td>Cada letra toma el color de la imagen en su posición (ANSI de 24 bits dentro del <code>str</code>).</td></tr>
+    </table></div>
+
+    <h3>Elegir el ancho</h3>
+    <ul>
+      <li><strong>30–50</strong>: mensajes cortos, chats, commits, la bio de un perfil.</li>
+      <li><strong>60–80</strong>: poemas, tarjetas, la mayoría de terminales.</li>
+      <li><strong>100–200</strong>: figuras con mucho detalle o palabras (el título animado del README usa 160). Necesitan un texto largo o <code>repetir=True</code>.</li>
+    </ul>
+    <p>Si tu texto debe salir completo y exactamente una vez, deja que caligrama calcule el ancho:</p>
+    <div class="code"><span class="label">python</span><pre><code>poema = open("becquer.txt", encoding="utf-8").read()
+print(caligrama.dibujar("logo.png", poema, ancho="auto", repetir=False))</code></pre></div>
+    <p><code>"auto"</code> busca el menor ancho cuya figura tiene al menos tantas celdas como letras tiene el texto (hasta 1000 columnas). Con <code>repetir=True</code> el final de la figura se rellena con el principio del texto; con <code>repetir=False</code> quedan en blanco las pocas celdas que sobren.</p>
+
+    <h3>Guardar el resultado</h3>
+    <div class="code"><span class="label">python</span><pre><code>from pathlib import Path
+
+dibujo = caligrama.dibujar("gato.png", "miau " * 50, ancho=50)
+Path("gato.txt").write_text(dibujo + "\n", encoding="utf-8")</code></pre></div>
+    <div class="note"><p>Para verlo bien fuera de la terminal, usa siempre una <strong>fuente monoespaciada</strong>: un bloque <code>```</code> en Markdown, WhatsApp o Discord, o un <code>&lt;pre&gt;</code> en HTML.</p></div>
+
+    <h2 id="es-espacios"><span class="num">05</span>Modos de espacios<a class="anchor" href="#es-espacios">#</a></h2>
+    <p>Los espacios también ocupan celdas. El argumento <code>espacios</code> decide qué hacer con ellos:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Modo</th><th>Qué hace</th><th>Úsalo para</th></tr>
+      <tr><td><code>"normal"</code></td><td>Junta espacios, saltos de línea y tabs seguidos en uno solo, y separa cada repetición del texto con un espacio.</td><td>Casi siempre. Es lo que mejor se lee.</td></tr>
+      <tr><td><code>"sin"</code></td><td>Quita todos los espacios y pega las repeticiones.</td><td>Figuras más sólidas; palabras sueltas como <code>"caligrama"</code>; imágenes a color.</td></tr>
+      <tr><td><code>"todos"</code></td><td>Deja cada espacio como está (un salto de línea o un tab = un espacio). No agrega separador entre repeticiones y descarta los saltos de línea del final.</td><td>Texto que ya está maquetado, o cuando la sangría importa.</td></tr>
+    </table></div>
+    <div class="code"><span class="label">python</span><pre><code>texto = "te  quiero\nmucho"
+caligrama.dibujar("corazon.png", texto, espacios="normal")  <span class="c"># "te quiero mucho te quiero mucho ..."</span>
+caligrama.dibujar("corazon.png", texto, espacios="sin")     <span class="c"># "tequieromuchotequieromucho..."</span>
+caligrama.dibujar("corazon.png", texto, espacios="todos")   <span class="c"># "te  quiero muchote  quiero mucho..."</span></code></pre></div>
+    <p><code>analizar()</code> y <code>ancho="auto"</code> cuentan las letras con el mismo modo, así que sus números coinciden con el dibujo.</p>
+
+    <h2 id="es-silueta"><span class="num">06</span>Controlar la silueta<a class="anchor" href="#es-silueta">#</a></h2>
+    <p>Saber cómo decide caligrama qué es figura te ayuda a elegir las opciones:</p>
+    <ol class="list">
+      <li><strong>Si la imagen tiene transparencia</strong>, la figura es lo que no es transparente. No hace falta nada más.</li>
+      <li><strong>Si no</strong>, toma como color de fondo la mediana de los píxeles del borde y marca como figura lo que se aleja de ese color. Por eso funciona con cualquier fondo liso, no solo blanco, y por eso un amarillo claro sobre blanco no desaparece.</li>
+      <li>El <strong>umbral</strong> se calcula solo y se adapta al ruido del JPEG.</li>
+      <li>Si hay <code>suavizar</code>, cierra los trazos.</li>
+      <li><strong>Rellena los huecos</strong>: solo es fondo lo que está conectado al borde. La barriga blanca de un pingüino sobre fondo blanco sigue siendo pingüino.</li>
+      <li>Reduce la máscara a una rejilla: una celda es figura si al menos la mitad de sus píxeles lo son.</li>
+    </ol>
+
+    <h3>huecos: conservar agujeros interiores</h3>
+    <p>Por defecto los agujeros se rellenan. Si el hueco es parte del dibujo (el ojo de las serpientes de Python, una letra O, una dona), actívalo:</p>
+    <div class="code"><pre><code>caligrama.dibujar("logo.png", texto, huecos=True)
+<span class="p">$ </span>caligrama logo.png -t "..." --con-huecos</code></pre></div>
+
+    <h3>suavizar: trazos finos, punteados o hechos de letras</h3>
+    <p>Si la figura sale "rota" o con pedazos sueltos (logos de línea fina, dibujos a lápiz, una imagen que ya es arte ASCII), <code>suavizar=N</code> une los trazos que están a menos de ~N píxeles. Empieza con 2–4 y sube si hace falta.</p>
+    <p>Ojo: al cerrar un contorno, su interior pasa a ser figura. Si quieres el anillo y no el disco, combínalo con <code>huecos=True</code>.</p>
+    <div class="code"><pre><code>caligrama.dibujar("firma.png", texto, suavizar=3)
+caligrama.dibujar("anillo.png", texto, suavizar=3, huecos=True)</code></pre></div>
+
+    <h3>umbral: cuando el automático no acierta</h3>
+    <p>El umbral es la distancia de color (0–255) a partir de la cual un píxel es figura. Bájalo (p. ej. <code>20</code>) si se pierden partes claras o de poco contraste; súbelo (p. ej. <code>80</code>) si entra ruido, sombras o parte del fondo.</p>
+    <div class="code"><pre><code>caligrama.dibujar("foto.jpg", texto, umbral=40)</code></pre></div>
+    <p>Para elegirlo rápido, prueba varios valores con <code>analizar</code> y mira la plantilla (sección siguiente).</p>
+
+    <h3>invertir: escribir alrededor</h3>
+    <p>Con <code>invertir=True</code> el texto llena el fondo y la figura queda como un hueco en blanco. Útil para logos oscuros o para un efecto de "recorte".</p>
+
+    <h3>aspecto: proporción de la fuente</h3>
+    <p>Un carácter de terminal es casi el doble de alto que de ancho; <code>aspecto=2.0</code> lo compensa para que un círculo salga redondo. Si vas a mostrar el resultado con otra fuente u otro interlineado (una web con <code>line-height</code> alto, un SVG), ajusta este valor. <code>a_svg</code> usa el mismo parámetro.</p>
+
+    <h2 id="es-analizar"><span class="num">07</span>Diseñar el texto: analizar()<a class="anchor" href="#es-analizar">#</a></h2>
+    <p>Antes de escribir un poema para una figura conviene saber cuánto espacio hay. <code>analizar()</code> examina la silueta sin escribir nada.</p>
+    <div class="code"><span class="label">firma</span><pre><code>caligrama.analizar(
+    imagen, texto=None, ancho=60, aspecto=2.0, espacios="normal",
+    umbral=None, invertir=False, huecos=False, suavizar=0,
+) -> dict</code></pre></div>
+    <div class="code"><span class="label">python</span><pre><code>info = caligrama.analizar("logo.png", "Hola mundo", ancho=30)
+info["letras"]            <span class="c"># 252 — celdas disponibles a este ancho</span>
+info["letras_por_fila"]   <span class="c"># [11, 13, 15, 14, 26, 26, 28, 28, 28, 26, 24, 13]</span>
+info["ancho_recomendado"] <span class="c"># 7 — el menor ancho donde cabe "Hola mundo"</span>
+print(info["plantilla"])  <span class="c"># la figura con '#' en cada celda</span></code></pre></div>
+    <div class="table-wrap"><table>
+      <tr><th>Clave</th><th>Tipo</th><th>Significado</th></tr>
+      <tr><td><code>ancho</code>, <code>filas</code></td><td>int</td><td>Tamaño del dibujo (ya resuelto si pasaste <code>"auto"</code>).</td></tr>
+      <tr><td><code>letras</code></td><td>int</td><td>Celdas de figura = letras que caben (los espacios cuentan).</td></tr>
+      <tr><td><code>palabras_aprox</code></td><td>int</td><td>Estimado de palabras que caben.</td></tr>
+      <tr><td><code>letras_por_fila</code></td><td>list[int]</td><td>Cuántas letras caben en cada fila, de arriba abajo.</td></tr>
+      <tr><td><code>tramos</code>, <code>tramo_min</code>, <code>tramo_max</code></td><td>int</td><td>Tramos continuos de figura y su largo. Entre tramos de una misma fila hay un hueco que puede partir una palabra.</td></tr>
+      <tr><td><code>plantilla</code></td><td>str</td><td>La figura con <code>#</code>. Coincide celda a celda con lo que dibujará <code>dibujar()</code> con las mismas opciones.</td></tr>
+      <tr><td><code>letras_por_ancho</code></td><td>dict[int, int]</td><td>Capacidad a otros anchos (30, 40, 50, 60, 80, 100, 120).</td></tr>
+      <tr><td><code>texto_letras</code></td><td>int</td><td>Solo si pasas <code>texto</code>: cuántas letras tiene, contadas con el mismo modo de <code>espacios</code>.</td></tr>
+      <tr><td><code>ancho_recomendado</code></td><td>int | None</td><td>Solo con <code>texto</code>: el ancho que usaría <code>"auto"</code>. <code>None</code> si no cabe ni a 1000 columnas.</td></tr>
+      <tr><td><code>sobran</code></td><td>int</td><td>Solo con <code>texto</code>: <code>letras - texto_letras</code>. Negativo = faltan celdas.</td></tr>
+    </table></div>
+
+    <h3>Desde la terminal</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama analizar logo.png -w 40 -t "Podrá nublarse el sol eternamente"
+<span class="p">$ </span>caligrama analizar logo.png -f poema.txt          <span class="c"># con tu poema</span>
+<span class="p">$ </span>caligrama analizar logo.png                       <span class="c"># sin texto: solo la capacidad</span></code></pre></div>
+    <div class="code is-out"><pre class="out"><code>Silueta a 40 columnas × 16 filas
+Caben 452 letras (los espacios cuentan) ≈ 75 palabras
+Tramos: 26 (de 5 a 28 letras); cada hueco entre tramos puede partir una palabra
+
+Plantilla (letras por fila a la derecha):
+               #############               │  13
+             #################             │  17
+            ###################            │  19
+     ########################## ######     │  32
+  ...
+
+Otros anchos:
+  ancho  filas  letras  ≈palabras
+     30     12     252        42
+     40     16     452        75
+     60     23     955       159
+
+Tu texto: 33 letras. Cabe completo desde 11 columnas (-w auto). A 40 columnas sobran 419 letras.</code></pre></div>
+    <p><code>caligrama analizar</code> no lee de stdin: el texto es opcional y se pasa con <code>-t</code> o <code>-f</code>.</p>
+
+    <h3>Flujo recomendado para un poema a medida</h3>
+    <ol class="list">
+      <li>Elige la imagen y prueba anchos con <code>caligrama analizar img.png -w N</code> hasta que la plantilla se vea bien.</li>
+      <li>Escribe el texto pensando en <code>letras</code> (más o menos). Usa <code>letras_por_fila</code> si quieres que un verso caiga en una fila concreta.</li>
+      <li>Pasa el texto a <code>analizar</code> y mira <code>sobran</code>. Ajusta palabras hasta acercarte a 0, o usa <code>ancho="auto"</code>.</li>
+      <li>Dibuja con <code>repetir=False</code> para que el texto salga una sola vez.</li>
+    </ol>
+
+    <h2 id="es-color"><span class="num">08</span>Color<a class="anchor" href="#es-color">#</a></h2>
+    <p>Hay dos formas de colorear, y ambas funcionan en la terminal y en SVG:</p>
+    <h3>Los colores de la imagen</h3>
+    <p>Con <code>color=True</code> cada letra lleva el color promedio de los píxeles de figura de su celda (el fondo no aclara los bordes). El color va dentro del <code>str</code> como códigos ANSI de 24 bits.</p>
+    <figure><img src="assets/arbol.svg" alt="Un árbol escrito con un poema; la copa verde y el tronco café" loading="lazy" /></figure>
+    <div class="code"><span class="label">python</span><pre><code>dibujo = caligrama.dibujar("arbol.png", poema, ancho=70, espacios="sin", color=True)
+print(dibujo)                                  <span class="c"># en color en la terminal</span>
+svg = caligrama.a_svg(dibujo, fondo="#111")    <span class="c"># el SVG respeta esos colores</span></code></pre></div>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama arbol.png -f poema.txt -w 70 --espacios sin --colores imagen
+<span class="p">$ </span>caligrama arbol.png -f poema.txt -w 70 --colores imagen --svg arbol.svg --fondo "#111"</code></pre></div>
+    <div class="note"><p>Si quieres el texto <strong>sin</strong> códigos ANSI (para guardarlo en un .txt o pegarlo en un chat), no uses <code>color=True</code>: los códigos viajan dentro del <code>str</code>.</p></div>
+
+    <h3>Un degradado</h3>
+    <p>Un degradado horizontal con colores en hexadecimal (<code>#rgb</code> o <code>#rrggbb</code>). Se pasa como <code>colores</code> a <code>reproducir</code> y <code>a_svg</code>, o como <code>--colores</code> en el CLI:</p>
+    <div class="code"><pre><code><span class="p">$ </span>caligrama logo.png -t "hola" --colores "#ff2d55,#b44dff"
+caligrama.reproducir(caligrama.dibujar("logo.png", "hola"), veces=1, colores=["#ff2d55", "#b44dff"])</code></pre></div>
+    <p>Si el dibujo ya trae colores de la imagen y además pasas un degradado, manda el degradado.</p>
+    <p>Los colores de terminal funcionan en Windows Terminal, iTerm2, GNOME Terminal, VS Code y casi cualquier terminal moderna. En el <code>cmd.exe</code> antiguo verás códigos raros.</p>
+
+    <h2 id="es-animar"><span class="num">09</span>Animaciones<a class="anchor" href="#es-animar">#</a></h2>
+    <p>Tres funciones que encajan: <code>animar</code> genera los fotogramas, <code>reproducir</code> los muestra en la terminal y <code>a_svg</code> los convierte en un SVG animado.</p>
+    <figure><img src="assets/titulo.svg" alt="La palabra CALIGRAMA escrita con la palabra caligrama, animada" loading="lazy" /></figure>
+
+    <h3 id="es-animar-fn">animar()</h3>
+    <div class="code"><span class="label">firma</span><pre><code>caligrama.animar(
+    imagen, texto,
+    fotogramas=None,   <span class="c"># None = los justos para un bucle sin salto</span>
+    paso=1,            <span class="c"># letras que avanza el texto por fotograma (0 = quieto)</span>
+    latido=0.0,        <span class="c"># 0-1: la figura se encoge hasta este factor y vuelve</span>
+    <span class="c"># + las mismas opciones de dibujar(): ancho, aspecto, repetir, espacios,</span>
+    <span class="c">#   umbral, invertir, huecos, suavizar, desfase, color</span>
+) -> list[str]</code></pre></div>
+    <ul>
+      <li><strong><code>paso</code></strong>: el texto corre por dentro de la figura. Con <code>fotogramas=None</code>, calcula cuántos hacen falta para que el texto dé la vuelta completa y el bucle no tenga salto.</li>
+      <li><strong><code>latido</code></strong>: la figura late con un pulso doble y se encoge hasta <code>latido</code>·100 % entre latidos. Valores entre <code>0.15</code> y <code>0.3</code> se ven naturales. Sin <code>paso</code>, usa 24 fotogramas.</li>
+      <li>Se combinan: un corazón que late con el poema corriendo.</li>
+      <li>Todos los fotogramas tienen el mismo tamaño y están alineados, así que se pueden superponer. Máximo 240 fotogramas.</li>
+    </ul>
+    <div class="code"><span class="label">python</span><pre><code>fotos = caligrama.animar("corazon.png", poema, paso=3, latido=0.22, ancho=56)
+len(fotos)       <span class="c"># número de fotogramas</span>
+print(fotos[0])  <span class="c"># cada uno es un str como el de dibujar()</span></code></pre></div>
+
+    <h3 id="es-reproducir">reproducir()</h3>
+    <div class="code"><span class="label">firma</span><pre><code>caligrama.reproducir(
+    fotogramas,        <span class="c"># str | list[str]</span>
+    intervalo=0.08,    <span class="c"># segundos por fotograma</span>
+    veces=None,        <span class="c"># None = hasta Ctrl+C</span>
+    colores=None,      <span class="c"># degradado opcional, p. ej. ["#ff5f8f", "#ff2d55"]</span>
+) -> None</code></pre></div>
+    <div class="code"><span class="label">python</span><pre><code>caligrama.reproducir(fotos, intervalo=0.07, colores=["#ff5f8f", "#ff2d55"])
+caligrama.reproducir(fotos, veces=3)   <span class="c"># tres vueltas y termina</span></code></pre></div>
+    <p>Oculta el cursor mientras anima y lo restaura siempre, incluso si pulsas Ctrl+C (que lanza <code>KeyboardInterrupt</code> como de costumbre).</p>
+
+    <h3 id="es-svg">a_svg()</h3>
+    <div class="code"><span class="label">firma</span><pre><code>caligrama.a_svg(
+    fotogramas,                         <span class="c"># str (estático) | list[str] (animado)</span>
+    intervalo=0.08,
+    colores=("#ff2d55", "#b44dff"),     <span class="c"># degradado (se ignora si los fotogramas traen color ANSI)</span>
+    fondo=None,                         <span class="c"># None = transparente</span>
+    tamano=14.0,                        <span class="c"># tamaño de letra en px</span>
+    aspecto=2.0,
+) -> str</code></pre></div>
+    <div class="code"><span class="label">python</span><pre><code>from pathlib import Path
+
+svg = caligrama.a_svg(fotos, intervalo=0.07, fondo="#14111a")
+Path("latido.svg").write_text(svg, encoding="utf-8")
+
+<span class="c"># Un solo dibujo, estático:</span>
+Path("logo.svg").write_text(caligrama.a_svg(caligrama.dibujar("logo.png", "hola")), encoding="utf-8")</code></pre></div>
+    <p>El SVG no necesita JavaScript: anima con CSS y funciona en <code>&lt;img&gt;</code>, en un README de GitHub y en la mayoría de visores. Con <code>color=True</code> cada letra lleva su propia etiqueta y el archivo pesa más; limita <code>fotogramas</code> si va a una web o a un README.</p>
+
+    <h3>Desde la terminal</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama animar corazon.png -f poema.txt --paso 3 --latido 0.22 -w 56      <span class="c"># Ctrl+C para salir</span>
+<span class="p">$ </span>caligrama animar corazon.png -f poema.txt --paso 3 --veces 2
+<span class="p">$ </span>caligrama animar corazon.png -f poema.txt --paso 3 --svg latido.svg --fondo "#14111a"
+<span class="p">$ </span>caligrama animar titulo.png -t caligrama -w 160 --espacios sin --con-huecos \
+      --colores "#ff2d55,#ff8a3d,#b44dff" --svg titulo.svg</code></pre></div>
+    <p>Si la salida no es una terminal (por ejemplo, la rediriges a un archivo), <code>animar</code> da una sola vuelta.</p>
+
+    <h2 id="es-cli"><span class="num">10</span>Referencia del CLI<a class="anchor" href="#es-cli">#</a></h2>
+    <div class="code"><span class="label">uso</span><pre><code>caligrama IMAGEN [opciones]            <span class="c"># escribe el texto dentro de la silueta</span>
+caligrama analizar IMAGEN [opciones]   <span class="c"># examina la silueta para diseñar el texto</span>
+caligrama animar IMAGEN [opciones]     <span class="c"># anima en la terminal o en un SVG</span></code></pre></div>
+    <p>El texto sale de <code>-t</code>, de <code>-f</code> o, si no pasas ninguno, de stdin (excepto en <code>analizar</code>). No se pueden usar <code>-t</code> y <code>-f</code> a la vez.</p>
+    <h3>Opciones comunes</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Opción</th><th>Python</th><th>Descripción</th></tr>
+      <tr><td><code>-t, --texto TEXTO</code></td><td><code>texto</code></td><td>Mensaje a escribir.</td></tr>
+      <tr><td><code>-f, --archivo RUTA</code></td><td>—</td><td>Leer el mensaje de un archivo (UTF-8).</td></tr>
+      <tr><td><code>-w, --ancho N|auto</code></td><td><code>ancho</code></td><td>Columnas de salida (60).</td></tr>
+      <tr><td><code>--aspecto F</code></td><td><code>aspecto</code></td><td>Alto/ancho de un carácter (2.0).</td></tr>
+      <tr><td><code>--umbral N</code></td><td><code>umbral</code></td><td>Umbral 0–255 figura/fondo (auto).</td></tr>
+      <tr><td><code>--sin-repetir</code></td><td><code>repetir=False</code></td><td>No repetir el texto.</td></tr>
+      <tr><td><code>--espacios MODO</code></td><td><code>espacios</code></td><td><code>normal</code>, <code>sin</code> o <code>todos</code>.</td></tr>
+      <tr><td><code>--invertir</code></td><td><code>invertir=True</code></td><td>Escribir en el fondo.</td></tr>
+      <tr><td><code>--con-huecos</code></td><td><code>huecos=True</code></td><td>Respetar huecos interiores.</td></tr>
+      <tr><td><code>--suavizar N</code></td><td><code>suavizar</code></td><td>Unir trazos finos (radio en px).</td></tr>
+      <tr><td><code>--desfase N</code></td><td><code>desfase</code></td><td>Empezar N letras más adelante.</td></tr>
+      <tr><td><code>-h, --help</code></td><td>—</td><td>Ayuda completa.</td></tr>
+    </table></div>
+    <h3>Salida (dibujar y animar)</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Opción</th><th>Python</th><th>Descripción</th></tr>
+      <tr><td><code>--colores C1,C2,...</code></td><td><code>colores</code></td><td>Degradado en hexadecimal.</td></tr>
+      <tr><td><code>--colores imagen</code></td><td><code>color=True</code></td><td>Cada letra con el color de la imagen.</td></tr>
+      <tr><td><code>--svg RUTA</code></td><td><code>a_svg()</code></td><td>Guardar un SVG en vez de imprimir.</td></tr>
+      <tr><td><code>--fondo COLOR</code></td><td><code>fondo</code></td><td>Fondo del SVG (transparente si no se indica).</td></tr>
+      <tr><td><code>--tamano PX</code></td><td><code>tamano</code></td><td>Tamaño de letra del SVG (14).</td></tr>
+    </table></div>
+    <h3>Solo animar</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Opción</th><th>Python</th><th>Descripción</th></tr>
+      <tr><td><code>--paso N</code></td><td><code>paso</code></td><td>Letras que avanza el texto por fotograma (1; 0 = quieto).</td></tr>
+      <tr><td><code>--latido F</code></td><td><code>latido</code></td><td>La figura late encogiéndose hasta F (0–1).</td></tr>
+      <tr><td><code>--fotogramas N</code></td><td><code>fotogramas</code></td><td>Cuántos fotogramas (auto: bucle sin salto).</td></tr>
+      <tr><td><code>--intervalo S</code></td><td><code>intervalo</code></td><td>Segundos por fotograma (0.08).</td></tr>
+      <tr><td><code>--veces N</code></td><td><code>veces</code></td><td>Vueltas en la terminal (sin fin; 1 si no es una terminal).</td></tr>
+    </table></div>
+    <p>Las opciones de salida no se aceptan en <code>analizar</code>, y las de animación solo en <code>animar</code>: el CLI avisa si mezclas. Código de salida: <code>0</code> si todo va bien, <code>2</code> ante cualquier error (el mensaje va a stderr).</p>
+
+    <h2 id="es-recetas"><span class="num">11</span>Recetas<a class="anchor" href="#es-recetas">#</a></h2>
+
+    <h3>Tarjeta de cumpleaños con los mensajes de todos</h3>
+    <div class="code"><span class="label">python</span><pre><code>import caligrama
+
+mensajes = [
+    "Feliz cumple, Ana!",
+    "Que este año te traiga todo lo bueno.",
+    "Te queremos mucho.",
+]
+texto = " · ".join(mensajes)
+print(caligrama.dibujar("foto_ana.png", texto, ancho="auto", repetir=False))</code></pre></div>
+
+    <h3>Imagen descargada de internet</h3>
+    <div class="code"><span class="label">python</span><pre><code>import urllib.request
+import caligrama
+
+datos = urllib.request.urlopen("https://ejemplo.com/logo.png").read()
+print(caligrama.dibujar(datos, "hola desde la web", ancho=50))</code></pre></div>
+
+    <h3>Endpoint web (FastAPI) que devuelve un SVG</h3>
+    <div class="code"><span class="label">python</span><pre><code>from fastapi import FastAPI, UploadFile, Form
+from fastapi.responses import Response
+import caligrama
+
+app = FastAPI()
+
+@app.post("/caligrama.svg")
+async def generar(imagen: UploadFile, texto: str = Form(...), ancho: int = Form(60)):
+    try:
+        dibujo = caligrama.dibujar(await imagen.read(), texto, ancho=ancho)
+    except ValueError as e:
+        return Response(str(e), status_code=422)
+    return Response(caligrama.a_svg(dibujo, fondo="#ffffff"), media_type="image/svg+xml")</code></pre></div>
+    <p>Todo corre en local, sin llamadas a servicios externos. Limita <code>ancho</code> y el tamaño del upload si el endpoint es público.</p>
+
+    <h3>Mostrarlo en una página HTML</h3>
+    <div class="code"><span class="label">python</span><pre><code>import html, caligrama
+
+dibujo = caligrama.dibujar("logo.png", "hola", ancho=40)
+pagina = f'&lt;pre style="font-family: monospace; line-height: 1"&gt;{html.escape(dibujo)}&lt;/pre&gt;'</code></pre></div>
+    <p>Escapa siempre el texto (<code>html.escape</code>) y usa una fuente monoespaciada. Si el <code>line-height</code> no es ~1, ajusta <code>aspecto</code>. Para algo más fiel, inserta el SVG de <code>a_svg</code>.</p>
+
+    <h3>Jupyter</h3>
+    <div class="code"><span class="label">python</span><pre><code>from IPython.display import SVG, display
+import caligrama
+
+display(SVG(caligrama.a_svg(caligrama.dibujar("gato.png", "miau", ancho=50))))</code></pre></div>
+
+    <h3>Banner de bienvenida para tu CLI</h3>
+    <div class="code"><span class="label">python</span><pre><code>import sys, caligrama
+
+if sys.stdout.isatty():
+    caligrama.reproducir(caligrama.animar("logo.png", "mi-herramienta", paso=2, ancho=40, espacios="sin"), veces=1)</code></pre></div>
+
+    <h3>Muchas imágenes de una carpeta</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>for img in fotos/*.png; do
+    caligrama "$img" -f poema.txt -w auto --sin-repetir > "${img%.png}.txt"
+  done</code></pre></div>
+
+    <h3>Mensaje para WhatsApp, Discord o Slack</h3>
+    <p>Genera sin color, con un ancho de 30–40 (las pantallas de móvil son estrechas) y pégalo entre tres comillas invertidas <code>```</code> para que se vea en monoespaciada.</p>
+
+    <h3>Ejemplos del repositorio</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>git clone https://github.com/maosuarez/caligrama && cd caligrama
+<span class="p">$ </span>python examples/demo.py          <span class="c"># recorrido por la API</span>
+<span class="p">$ </span>bash examples/demo.sh            <span class="c"># recorrido por la terminal</span>
+<span class="p">$ </span>python examples/latido.py        <span class="c"># corazón que late (--svg latido.svg para guardarlo)</span>
+<span class="p">$ </span>python examples/titulo.py        <span class="c"># el título animado del README</span>
+<span class="p">$ </span>python examples/arbol.py         <span class="c"># el árbol a color</span></code></pre></div>
+
+    <h2 id="es-problemas"><span class="num">12</span>Problemas frecuentes<a class="anchor" href="#es-problemas">#</a></h2>
+    <div class="table-wrap"><table>
+      <tr><th>Síntoma</th><th>Prueba con</th></tr>
+      <tr><td>La figura sale como un rectángulo o incluye el fondo</td><td>El fondo no es liso o toca el borde con otro color. Recorta la imagen, usa un PNG transparente o sube <code>umbral</code>.</td></tr>
+      <tr><td>Faltan partes claras de la figura</td><td>Baja <code>umbral</code> (p. ej. 20–30).</td></tr>
+      <tr><td>La figura sale rota, con trozos sueltos</td><td><code>suavizar=2</code> a <code>5</code>, o más <code>ancho</code>.</td></tr>
+      <tr><td>Un agujero que debería verse sale relleno</td><td><code>huecos=True</code> / <code>--con-huecos</code>.</td></tr>
+      <tr><td>Se ve estirada o aplastada</td><td>Ajusta <code>aspecto</code> a la proporción de tu fuente.</td></tr>
+      <tr><td>Muy poco detalle</td><td>Sube <code>ancho</code>. Con textos cortos, deja <code>repetir=True</code>.</td></tr>
+      <tr><td>Las palabras se cortan mucho</td><td>Es inevitable en los bordes; prueba otro <code>ancho</code> o <code>desfase</code>, y usa <code>analizar</code> para ver los tramos.</td></tr>
+      <tr><td>El texto no cabe con <code>"auto"</code></td><td>Acorta el texto o usa un ancho fijo con <code>repetir=False</code> (lo que sobre se corta).</td></tr>
+      <tr><td>Aparecen códigos como <code>\x1b[38;2;...</code></td><td>Tu salida no entiende ANSI. Quita <code>color=True</code> / <code>--colores</code>, o usa una terminal moderna.</td></tr>
+      <tr><td>Letras torcidas al pegarlo</td><td>El destino no usa fuente monoespaciada. Envuélvelo en <code>```</code> o <code>&lt;pre&gt;</code>.</td></tr>
+      <tr><td>El SVG pesa mucho</td><td>Menos <code>fotogramas</code>, menos <code>ancho</code>, o sin <code>color=True</code>.</td></tr>
+    </table></div>
+
+    <h2 id="es-errores"><span class="num">13</span>Errores<a class="anchor" href="#es-errores">#</a></h2>
+    <div class="table-wrap"><table>
+      <tr><th>Excepción</th><th>Cuándo</th></tr>
+      <tr><td><code>OSError</code></td><td>No se puede leer el archivo (no existe, sin permisos).</td></tr>
+      <tr><td><code>ValueError</code></td><td>La imagen no se puede decodificar; <code>el texto está vacío</code>; <code>no se encontró ninguna silueta en la imagen</code>; <code>opción inválida: ...</code> (ancho 0, modo de espacios desconocido, color mal escrito...); el texto no cabe ni a 1000 columnas con <code>"auto"</code>.</td></tr>
+      <tr><td><code>KeyboardInterrupt</code></td><td>Ctrl+C durante <code>reproducir</code>.</td></tr>
+    </table></div>
+    <div class="code"><span class="label">python</span><pre><code>try:
+    dibujo = caligrama.dibujar(ruta, texto, ancho="auto")
+except OSError as e:
+    print("no pude abrir la imagen:", e)
+except ValueError as e:
+    print("revisa la imagen o las opciones:", e)</code></pre></div>
+    <p>Los mensajes de error están en español.</p>
+
+    <h2 id="es-tipos"><span class="num">14</span>Tipos y versión<a class="anchor" href="#es-tipos">#</a></h2>
+    <p>El paquete incluye <code>caligrama.pyi</code>, así que tu editor y mypy/pyright conocen las firmas, los <code>Literal</code> de <code>espacios</code> y el <code>TypedDict</code> que devuelve <code>analizar</code> (<code>caligrama.Analisis</code>).</p>
+    <div class="code"><span class="label">python</span><pre><code>import caligrama
+caligrama.__version__   <span class="c"># "0.3.2"</span></code></pre></div>
+    <div class="card">
+      <p><strong>Enlaces:</strong>
+        <a href="https://pypi.org/project/caligrama/">PyPI</a> ·
+        <a href="https://github.com/maosuarez/caligrama">GitHub</a> ·
+        <a href="https://github.com/maosuarez/caligrama/issues">Reportar un problema</a> ·
+        <a href="/es/proyectos/caligrama">Historia del proyecto</a>
+      </p>
+      <p>Licencia MIT. Úsalo en lo que quieras, también en proyectos comerciales.</p>
+    </div>
+    <footer>caligrama — documentación · Mauricio "Mao" Suárez Barrera</footer>
+  </article>
+
+  <!-- ================================================================= -->
+  <!-- ============================ ENGLISH ============================ -->
+  <!-- ================================================================= -->
+  <article data-l="en" lang="en">
+    <section class="hero" id="en-intro">
+      <span class="eyebrow">Documentation · caligrama</span>
+      <h1>Write text in the shape of an image</h1>
+      <p class="lead">
+        caligrama takes an image and some text, finds the object's silhouette and writes the text inside it,
+        letter by letter. It returns a plain <code>str</code> you can print, paste into a chat, save to a file
+        or turn into an animated SVG.
+      </p>
+      <img class="hero-img" src="assets/latido.svg" alt="A beating heart written with a poem running through it" />
+      <p class="caption">This heart is generated by the library itself with <code>caligrama.animar(..., latido=0.22, paso=3)</code>.</p>
+      <div class="grid">
+        <div class="card"><h4>100% Rust</h4><p>Decoding, segmentation and layout all happen in Rust. The Python package has no dependencies.</p></div>
+        <div class="card"><h4>Offline</h4><p>No network access. Your image and text never leave your machine.</p></div>
+        <div class="card"><h4>API and CLI</h4><p><code>import caligrama</code> from Python or the <code>caligrama</code> command in your terminal. They do the same thing.</p></div>
+      </div>
+      <p>
+        The API is in Spanish (a <em>caligrama</em> is a calligram). The functions are <code>dibujar</code> (draw),
+        <code>analizar</code> (analyze), <code>animar</code> (animate), <code>a_svg</code> (to SVG) and
+        <code>reproducir</code> (play), and argument names are Spanish too: <code>ancho</code> (width),
+        <code>espacios</code> (spaces), <code>huecos</code> (holes), and so on. This page translates each one and
+        shows examples you can copy.
+      </p>
+    </section>
+
+    <h2 id="en-install"><span class="num">01</span>Installation<a class="anchor" href="#en-install">#</a></h2>
+    <div class="code"><pre><code><span class="p">$ </span>pip install caligrama</code></pre></div>
+    <ul>
+      <li><strong>Python 3.9 or newer.</strong> A single <code>abi3</code> wheel covers every version.</li>
+      <li><strong>Platforms:</strong> Linux (x86_64 and aarch64, glibc and musl), macOS (Intel and Apple Silicon) and Windows x64.</li>
+      <li><strong>No dependencies:</strong> it doesn't pull in Pillow, numpy or anything else.</li>
+      <li><strong>Image formats:</strong> PNG, JPEG, GIF, BMP and WebP.</li>
+    </ul>
+    <p>Check the install:</p>
+    <div class="code"><pre><code><span class="p">$ </span>python -c "import caligrama; print(caligrama.__version__)"
+<span class="p">$ </span>caligrama --help</code></pre></div>
+    <p>With <a href="https://docs.astral.sh/uv/">uv</a> or pipx you can use just the command without touching your environment:</p>
+    <div class="code"><pre><code><span class="p">$ </span>uvx caligrama photo.png -t "hello"
+<span class="p">$ </span>pipx install caligrama</code></pre></div>
+
+    <h2 id="en-quick"><span class="num">02</span>Quick start<a class="anchor" href="#en-quick">#</a></h2>
+    <h3>From Python</h3>
+    <div class="code"><span class="label">python</span><pre><code>import caligrama
+
+drawing = caligrama.dibujar("logo.png", "Hello world, this is caligrama", ancho=30)
+print(drawing)</code></pre></div>
+    <p>With the Python logo (white background, blue and yellow snakes) you get something like this:</p>
+    <div class="code is-out"><pre class="out"><code>         Hello world
+        , this is cal
+       igrama Hello wo
+        rld, this is c
+  aligrama Hello world, this
+  is caligrama Hello  world,
+ this is caligrama He llo wor
+ld, this  is caligrama Hello
+world,  this is caligrama Hel
+ lo wor ld, this is caligram
+  a Hel lo world, this is c
+        aligrama Hell</code></pre></div>
+    <p>The text repeats until the shape is full. To print it exactly once, use <code>ancho="auto"</code> and <code>repetir=False</code> (explained below).</p>
+
+    <h3>From the terminal</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama logo.png -w 30 -t "Hello world, this is caligrama"
+<span class="p">$ </span>caligrama logo.png -f poem.txt           <span class="c"># text from a file</span>
+<span class="p">$ </span>cat poem.txt | caligrama logo.png        <span class="c"># or from stdin</span>
+<span class="p">$ </span>caligrama logo.png -f poem.txt > card.txt  <span class="c"># save the result</span></code></pre></div>
+
+    <h2 id="en-inputs"><span class="num">03</span>Input image and text<a class="anchor" href="#en-inputs">#</a></h2>
+    <h3>The image</h3>
+    <p>The <code>imagen</code> argument accepts three things:</p>
+    <div class="code"><span class="label">python</span><pre><code>from pathlib import Path
+import caligrama
+
+caligrama.dibujar("cat.png", text)                   <span class="c"># path as a str</span>
+caligrama.dibujar(Path("photos") / "cat.png", text)  <span class="c"># any os.PathLike</span>
+caligrama.dibujar(Path("cat.png").read_bytes(), text)  <span class="c"># raw file bytes</span></code></pre></div>
+    <p>Bytes are for images that aren't on disk: a <code>requests</code> download, a Flask/FastAPI upload or a database blob. The format is detected from the content, not the extension.</p>
+    <div class="card">
+      <p><strong>What works best:</strong> a clear object on a flat background (white, black, any solid color or transparent). Logos, silhouettes, icons, illustrations and product photos work very well. For photos with busy backgrounds, crop the object first or use a PNG with transparency.</p>
+    </div>
+
+    <h3>The text</h3>
+    <ul>
+      <li>Any Python <code>str</code>. It's walked by <strong>grapheme</strong>, so accents, ñ, ü and composed emoji (👩‍❤️‍👨, 🇨🇴) take one cell and are never split.</li>
+      <li>Newlines and tabs are treated as spaces (see <a href="#en-spaces">space modes</a>).</li>
+      <li>Empty text (or only whitespace) raises <code>ValueError</code>.</li>
+    </ul>
+    <div class="note"><p>Emoji and CJK characters usually take two terminal columns, so the shape warps a little where they appear. For clean drawings, stick to Latin letters.</p></div>
+
+    <h2 id="en-dibujar"><span class="num">04</span>dibujar()<a class="anchor" href="#en-dibujar">#</a></h2>
+    <p>The main function (<em>dibujar</em> = to draw). Returns the calligram as a single <code>str</code> with <code>\n</code> line breaks, no trailing spaces and no blank rows at the top or bottom.</p>
+    <div class="code"><span class="label">signature</span><pre><code>caligrama.dibujar(
+    imagen,                <span class="c"># image: str | os.PathLike | bytes</span>
+    texto,                 <span class="c"># text: str</span>
+    ancho=60,              <span class="c"># width: int | "auto"</span>
+    aspecto=2.0,           <span class="c"># aspect</span>
+    repetir=True,          <span class="c"># repeat</span>
+    espacios="normal",     <span class="c"># spaces: "normal" | "sin" | "todos"</span>
+    umbral=None,           <span class="c"># threshold: int 0-255 | None (automatic)</span>
+    invertir=False,        <span class="c"># invert</span>
+    huecos=False,          <span class="c"># holes</span>
+    suavizar=0,            <span class="c"># smooth</span>
+    desfase=0,             <span class="c"># offset</span>
+    color=False,
+) -> str</code></pre></div>
+    <div class="table-wrap"><table>
+      <tr><th>Argument</th><th>CLI</th><th>Default</th><th>What it does</th></tr>
+      <tr><td><code>ancho</code> <span class="c">(width)</span></td><td><code>-w, --ancho</code></td><td><code>60</code></td><td>Output columns. Wider = more detail and more letters. <code>"auto"</code> picks the smallest width where the whole text fits.</td></tr>
+      <tr><td><code>aspecto</code> <span class="c">(aspect)</span></td><td><code>--aspecto</code></td><td><code>2.0</code></td><td>Height/width of one character. About 2 in most terminals. If the drawing looks stretched vertically, raise it; if it looks squashed, lower it.</td></tr>
+      <tr><td><code>repetir</code> <span class="c">(repeat)</span></td><td><code>--sin-repetir</code></td><td><code>True</code></td><td>Repeat the text until the shape is full. With <code>False</code> it's written once and the rest of the shape stays empty.</td></tr>
+      <tr><td><code>espacios</code> <span class="c">(spaces)</span></td><td><code>--espacios</code></td><td><code>"normal"</code></td><td>How to handle whitespace in the text. See <a href="#en-spaces">modes</a>.</td></tr>
+      <tr><td><code>umbral</code> <span class="c">(threshold)</span></td><td><code>--umbral</code></td><td>auto</td><td>How different from the background a pixel must be to count as shape (0–255).</td></tr>
+      <tr><td><code>invertir</code> <span class="c">(invert)</span></td><td><code>--invertir</code></td><td><code>False</code></td><td>Write on the background and leave the shape empty.</td></tr>
+      <tr><td><code>huecos</code> <span class="c">(holes)</span></td><td><code>--con-huecos</code></td><td><code>False</code></td><td>Keep interior holes that match the background (a logo's eye, a donut's center).</td></tr>
+      <tr><td><code>suavizar</code> <span class="c">(smooth)</span></td><td><code>--suavizar</code></td><td><code>0</code></td><td>Join thin or dotted strokes before sampling (radius in source-image pixels).</td></tr>
+      <tr><td><code>desfase</code> <span class="c">(offset)</span></td><td><code>--desfase</code></td><td><code>0</code></td><td>Start writing N letters into the text.</td></tr>
+      <tr><td><code>color</code></td><td><code>--colores imagen</code></td><td><code>False</code></td><td>Each letter takes the image's color at its position (24-bit ANSI inside the <code>str</code>).</td></tr>
+    </table></div>
+
+    <h3>Choosing the width</h3>
+    <ul>
+      <li><strong>30–50</strong>: short messages, chats, commits, a profile bio.</li>
+      <li><strong>60–80</strong>: poems, cards, most terminals.</li>
+      <li><strong>100–200</strong>: detailed shapes or lettering (the animated README title uses 160). They need long text or <code>repetir=True</code>.</li>
+    </ul>
+    <p>If your text must appear in full and exactly once, let caligrama compute the width:</p>
+    <div class="code"><span class="label">python</span><pre><code>poem = open("poem.txt", encoding="utf-8").read()
+print(caligrama.dibujar("logo.png", poem, ancho="auto", repetir=False))</code></pre></div>
+    <p><code>"auto"</code> finds the smallest width whose shape has at least as many cells as the text has letters (up to 1000 columns). With <code>repetir=True</code> the leftover cells are filled with the start of the text again; with <code>repetir=False</code> those few cells stay blank.</p>
+
+    <h3>Saving the result</h3>
+    <div class="code"><span class="label">python</span><pre><code>from pathlib import Path
+
+drawing = caligrama.dibujar("cat.png", "meow " * 50, ancho=50)
+Path("cat.txt").write_text(drawing + "\n", encoding="utf-8")</code></pre></div>
+    <div class="note"><p>To display it outside a terminal, always use a <strong>monospaced font</strong>: a <code>```</code> block in Markdown, WhatsApp or Discord, or a <code>&lt;pre&gt;</code> in HTML.</p></div>
+
+    <h2 id="en-spaces"><span class="num">05</span>Space modes<a class="anchor" href="#en-spaces">#</a></h2>
+    <p>Spaces take up cells too. The <code>espacios</code> argument decides what to do with them:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Mode</th><th>What it does</th><th>Use it for</th></tr>
+      <tr><td><code>"normal"</code></td><td>Collapses runs of spaces, newlines and tabs into one, and separates each repetition of the text with a space.</td><td>Almost always. It reads best.</td></tr>
+      <tr><td><code>"sin"</code> <span class="c">(without)</span></td><td>Removes every space and glues repetitions together.</td><td>Solid-looking shapes; single words like <code>"caligrama"</code>; color images.</td></tr>
+      <tr><td><code>"todos"</code> <span class="c">(all)</span></td><td>Keeps every space as-is (a newline or tab = one space). No separator between repetitions; trailing newlines are dropped.</td><td>Pre-formatted text, or when indentation matters.</td></tr>
+    </table></div>
+    <div class="code"><span class="label">python</span><pre><code>text = "love  you\nso much"
+caligrama.dibujar("heart.png", text, espacios="normal")  <span class="c"># "love you so much love you so much ..."</span>
+caligrama.dibujar("heart.png", text, espacios="sin")     <span class="c"># "loveyousomuchloveyousomuch..."</span>
+caligrama.dibujar("heart.png", text, espacios="todos")   <span class="c"># "love  you so muchlove  you so much..."</span></code></pre></div>
+    <p><code>analizar()</code> and <code>ancho="auto"</code> count letters with the same mode, so their numbers match the drawing.</p>
+
+    <h2 id="en-silhouette"><span class="num">06</span>Controlling the silhouette<a class="anchor" href="#en-silhouette">#</a></h2>
+    <p>Knowing how caligrama decides what counts as shape helps you pick the right options:</p>
+    <ol class="list">
+      <li><strong>If the image has transparency</strong>, the shape is whatever isn't transparent. Nothing else needed.</li>
+      <li><strong>Otherwise</strong>, it takes the median color of the border pixels as the background and marks as shape whatever is far from that color. That's why any flat background works, not just white, and why light yellow on white doesn't vanish.</li>
+      <li>The <strong>threshold</strong> is computed automatically and adapts to JPEG noise.</li>
+      <li>If <code>suavizar</code> is set, it closes the strokes.</li>
+      <li><strong>It fills holes</strong>: only what's connected to the border is background. A penguin's white belly on a white background is still penguin.</li>
+      <li>It reduces the mask to a grid: a cell is shape if at least half its pixels are.</li>
+    </ol>
+
+    <h3>huecos: keep interior holes</h3>
+    <p>By default holes are filled. If the hole is part of the drawing (the Python snakes' eyes, the letter O, a donut), turn it on:</p>
+    <div class="code"><pre><code>caligrama.dibujar("logo.png", text, huecos=True)
+<span class="p">$ </span>caligrama logo.png -t "..." --con-huecos</code></pre></div>
+
+    <h3>suavizar: thin, dotted or lettered strokes</h3>
+    <p>If the shape comes out "broken" or in scattered pieces (thin-line logos, pencil sketches, an image that is already ASCII art), <code>suavizar=N</code> joins strokes that are less than ~N pixels apart. Start with 2–4 and go up if needed.</p>
+    <p>Heads up: closing an outline makes its inside part of the shape. If you want the ring rather than the disc, combine it with <code>huecos=True</code>.</p>
+    <div class="code"><pre><code>caligrama.dibujar("signature.png", text, suavizar=3)
+caligrama.dibujar("ring.png", text, suavizar=3, huecos=True)</code></pre></div>
+
+    <h3>umbral: when automatic isn't right</h3>
+    <p>The threshold is the color distance (0–255) above which a pixel counts as shape. Lower it (e.g. <code>20</code>) if light or low-contrast parts go missing; raise it (e.g. <code>80</code>) if noise, shadows or background creep in.</p>
+    <div class="code"><pre><code>caligrama.dibujar("photo.jpg", text, umbral=40)</code></pre></div>
+    <p>To find a good value quickly, try a few with <code>analizar</code> and look at the template (next section).</p>
+
+    <h3>invertir: write around it</h3>
+    <p>With <code>invertir=True</code> the text fills the background and the shape becomes a blank cut-out. Handy for dark logos or a stencil look.</p>
+
+    <h3>aspecto: font proportions</h3>
+    <p>A terminal character is almost twice as tall as it is wide; <code>aspecto=2.0</code> compensates so a circle comes out round. If you'll show the result with another font or line height (a web page with a tall <code>line-height</code>, an SVG), adjust it. <code>a_svg</code> takes the same parameter.</p>
+
+    <h2 id="en-analizar"><span class="num">07</span>Designing the text: analizar()<a class="anchor" href="#en-analizar">#</a></h2>
+    <p>Before writing a poem for a shape, it helps to know how much room there is. <code>analizar()</code> (analyze) inspects the silhouette without writing anything.</p>
+    <div class="code"><span class="label">signature</span><pre><code>caligrama.analizar(
+    imagen, texto=None, ancho=60, aspecto=2.0, espacios="normal",
+    umbral=None, invertir=False, huecos=False, suavizar=0,
+) -> dict</code></pre></div>
+    <div class="code"><span class="label">python</span><pre><code>info = caligrama.analizar("logo.png", "Hello world", ancho=30)
+info["letras"]            <span class="c"># 252 — cells available at this width</span>
+info["letras_por_fila"]   <span class="c"># [11, 13, 15, 14, 26, 26, 28, 28, 28, 26, 24, 13]</span>
+info["ancho_recomendado"] <span class="c"># smallest width where "Hello world" fits</span>
+print(info["plantilla"])  <span class="c"># the shape drawn with '#'</span></code></pre></div>
+    <div class="table-wrap"><table>
+      <tr><th>Key</th><th>Type</th><th>Meaning</th></tr>
+      <tr><td><code>ancho</code>, <code>filas</code></td><td>int</td><td>Width and rows of the drawing (resolved if you passed <code>"auto"</code>).</td></tr>
+      <tr><td><code>letras</code> <span class="c">(letters)</span></td><td>int</td><td>Shape cells = letters that fit (spaces count).</td></tr>
+      <tr><td><code>palabras_aprox</code></td><td>int</td><td>Approximate number of words that fit.</td></tr>
+      <tr><td><code>letras_por_fila</code></td><td>list[int]</td><td>Letters that fit in each row, top to bottom.</td></tr>
+      <tr><td><code>tramos</code>, <code>tramo_min</code>, <code>tramo_max</code></td><td>int</td><td>Continuous runs of shape and their lengths. A gap between runs on the same row may split a word.</td></tr>
+      <tr><td><code>plantilla</code> <span class="c">(template)</span></td><td>str</td><td>The shape with <code>#</code>. Matches cell for cell what <code>dibujar()</code> draws with the same options.</td></tr>
+      <tr><td><code>letras_por_ancho</code></td><td>dict[int, int]</td><td>Capacity at other widths (30, 40, 50, 60, 80, 100, 120).</td></tr>
+      <tr><td><code>texto_letras</code></td><td>int</td><td>Only with <code>texto</code>: its letter count, using the same <code>espacios</code> mode.</td></tr>
+      <tr><td><code>ancho_recomendado</code></td><td>int | None</td><td>Only with <code>texto</code>: the width <code>"auto"</code> would pick. <code>None</code> if it doesn't fit even at 1000 columns.</td></tr>
+      <tr><td><code>sobran</code> <span class="c">(left over)</span></td><td>int</td><td>Only with <code>texto</code>: <code>letras - texto_letras</code>. Negative = not enough cells.</td></tr>
+    </table></div>
+
+    <h3>From the terminal</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama analizar logo.png -w 40 -t "Podrá nublarse el sol eternamente"
+<span class="p">$ </span>caligrama analizar logo.png -f poem.txt           <span class="c"># with your poem</span>
+<span class="p">$ </span>caligrama analizar logo.png                       <span class="c"># no text: capacity only</span></code></pre></div>
+    <p>The report is printed in Spanish:</p>
+    <div class="code is-out"><pre class="out"><code>Silueta a 40 columnas × 16 filas
+Caben 452 letras (los espacios cuentan) ≈ 75 palabras
+Tramos: 26 (de 5 a 28 letras); cada hueco entre tramos puede partir una palabra
+
+Plantilla (letras por fila a la derecha):
+               #############               │  13
+             #################             │  17
+            ###################            │  19
+     ########################## ######     │  32
+  ...
+
+Otros anchos:
+  ancho  filas  letras  ≈palabras
+     30     12     252        42
+     40     16     452        75
+     60     23     955       159
+
+Tu texto: 33 letras. Cabe completo desde 11 columnas (-w auto). A 40 columnas sobran 419 letras.</code></pre></div>
+    <p>Roughly: "silhouette at 40 columns × 16 rows · 452 letters fit ≈ 75 words · 26 runs · other widths · your text has 33 letters, fits in full from 11 columns, at 40 columns 419 letters are left over". <code>caligrama analizar</code> doesn't read stdin: the text is optional and passed with <code>-t</code> or <code>-f</code>.</p>
+
+    <h3>Suggested workflow for a custom poem</h3>
+    <ol class="list">
+      <li>Pick the image and try widths with <code>caligrama analizar img.png -w N</code> until the template looks right.</li>
+      <li>Write the text aiming for roughly <code>letras</code> letters. Use <code>letras_por_fila</code> if you want a line to land on a specific row.</li>
+      <li>Pass the text to <code>analizar</code> and check <code>sobran</code>. Tweak words until it's close to 0, or use <code>ancho="auto"</code>.</li>
+      <li>Draw with <code>repetir=False</code> so the text appears exactly once.</li>
+    </ol>
+
+    <h2 id="en-color"><span class="num">08</span>Color<a class="anchor" href="#en-color">#</a></h2>
+    <p>There are two ways to add color, and both work in the terminal and in SVG:</p>
+    <h3>The image's own colors</h3>
+    <p>With <code>color=True</code> each letter gets the average color of the shape pixels in its cell (the background doesn't wash out the edges). The color travels inside the <code>str</code> as 24-bit ANSI codes.</p>
+    <figure><img src="assets/arbol.svg" alt="A tree written with a poem; green canopy and brown trunk" loading="lazy" /></figure>
+    <div class="code"><span class="label">python</span><pre><code>drawing = caligrama.dibujar("tree.png", poem, ancho=70, espacios="sin", color=True)
+print(drawing)                                  <span class="c"># colored in the terminal</span>
+svg = caligrama.a_svg(drawing, fondo="#111")    <span class="c"># the SVG keeps those colors</span></code></pre></div>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama tree.png -f poem.txt -w 70 --espacios sin --colores imagen
+<span class="p">$ </span>caligrama tree.png -f poem.txt -w 70 --colores imagen --svg tree.svg --fondo "#111"</code></pre></div>
+    <div class="note"><p>If you want the text <strong>without</strong> ANSI codes (to save as .txt or paste in a chat), don't use <code>color=True</code>: the codes are part of the <code>str</code>.</p></div>
+
+    <h3>A gradient</h3>
+    <p>A horizontal gradient with hex colors (<code>#rgb</code> or <code>#rrggbb</code>). Pass it as <code>colores</code> to <code>reproducir</code> and <code>a_svg</code>, or as <code>--colores</code> on the CLI:</p>
+    <div class="code"><pre><code><span class="p">$ </span>caligrama logo.png -t "hello" --colores "#ff2d55,#b44dff"
+caligrama.reproducir(caligrama.dibujar("logo.png", "hello"), veces=1, colores=["#ff2d55", "#b44dff"])</code></pre></div>
+    <p>If the drawing already carries image colors and you also pass a gradient, the gradient wins.</p>
+    <p>Terminal colors work in Windows Terminal, iTerm2, GNOME Terminal, VS Code and nearly every modern terminal. Legacy <code>cmd.exe</code> will show garbage codes.</p>
+
+    <h2 id="en-animate"><span class="num">09</span>Animations<a class="anchor" href="#en-animate">#</a></h2>
+    <p>Three functions that fit together: <code>animar</code> builds the frames, <code>reproducir</code> plays them in the terminal and <code>a_svg</code> turns them into an animated SVG.</p>
+    <figure><img src="assets/titulo.svg" alt="The word CALIGRAMA written with the word caligrama, animated" loading="lazy" /></figure>
+
+    <h3 id="en-animar-fn">animar()</h3>
+    <div class="code"><span class="label">signature</span><pre><code>caligrama.animar(
+    imagen, texto,
+    fotogramas=None,   <span class="c"># frames: None = just enough for a seamless loop</span>
+    paso=1,            <span class="c"># step: letters the text advances per frame (0 = still)</span>
+    latido=0.0,        <span class="c"># heartbeat 0-1: the shape shrinks to this factor and back</span>
+    <span class="c"># + the same options as dibujar(): ancho, aspecto, repetir, espacios,</span>
+    <span class="c">#   umbral, invertir, huecos, suavizar, desfase, color</span>
+) -> list[str]</code></pre></div>
+    <ul>
+      <li><strong><code>paso</code></strong> (step): the text flows through the shape. With <code>fotogramas=None</code> it computes how many frames the text needs to come full circle, so the loop has no jump.</li>
+      <li><strong><code>latido</code></strong> (heartbeat): the shape beats with a double pulse and shrinks to <code>latido</code>·100% between beats. Values between <code>0.15</code> and <code>0.3</code> look natural. Without <code>paso</code> it uses 24 frames.</li>
+      <li>They combine: a beating heart with the poem running through it.</li>
+      <li>All frames have the same size and are aligned, so they overlay cleanly. Maximum 240 frames.</li>
+    </ul>
+    <div class="code"><span class="label">python</span><pre><code>frames = caligrama.animar("heart.png", poem, paso=3, latido=0.22, ancho=56)
+len(frames)       <span class="c"># number of frames</span>
+print(frames[0])  <span class="c"># each one is a str, like dibujar()'s output</span></code></pre></div>
+
+    <h3 id="en-reproducir">reproducir()</h3>
+    <div class="code"><span class="label">signature</span><pre><code>caligrama.reproducir(
+    fotogramas,        <span class="c"># frames: str | list[str]</span>
+    intervalo=0.08,    <span class="c"># seconds per frame</span>
+    veces=None,        <span class="c"># times: None = until Ctrl+C</span>
+    colores=None,      <span class="c"># optional gradient, e.g. ["#ff5f8f", "#ff2d55"]</span>
+) -> None</code></pre></div>
+    <div class="code"><span class="label">python</span><pre><code>caligrama.reproducir(frames, intervalo=0.07, colores=["#ff5f8f", "#ff2d55"])
+caligrama.reproducir(frames, veces=3)   <span class="c"># three loops, then return</span></code></pre></div>
+    <p>It hides the cursor while playing and always restores it, even on Ctrl+C (which raises <code>KeyboardInterrupt</code> as usual).</p>
+
+    <h3 id="en-svg">a_svg()</h3>
+    <div class="code"><span class="label">signature</span><pre><code>caligrama.a_svg(
+    fotogramas,                         <span class="c"># str (static) | list[str] (animated)</span>
+    intervalo=0.08,
+    colores=("#ff2d55", "#b44dff"),     <span class="c"># gradient (ignored if frames carry ANSI color)</span>
+    fondo=None,                         <span class="c"># background: None = transparent</span>
+    tamano=14.0,                        <span class="c"># font size in px</span>
+    aspecto=2.0,
+) -> str</code></pre></div>
+    <div class="code"><span class="label">python</span><pre><code>from pathlib import Path
+
+svg = caligrama.a_svg(frames, intervalo=0.07, fondo="#14111a")
+Path("heartbeat.svg").write_text(svg, encoding="utf-8")
+
+<span class="c"># A single, static drawing:</span>
+Path("logo.svg").write_text(caligrama.a_svg(caligrama.dibujar("logo.png", "hello")), encoding="utf-8")</code></pre></div>
+    <p>The SVG needs no JavaScript: it animates with CSS and works in an <code>&lt;img&gt;</code>, a GitHub README and most viewers. With <code>color=True</code> each letter gets its own tag and the file grows; limit <code>fotogramas</code> for web pages and READMEs.</p>
+
+    <h3>From the terminal</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>caligrama animar heart.png -f poem.txt --paso 3 --latido 0.22 -w 56      <span class="c"># Ctrl+C to quit</span>
+<span class="p">$ </span>caligrama animar heart.png -f poem.txt --paso 3 --veces 2
+<span class="p">$ </span>caligrama animar heart.png -f poem.txt --paso 3 --svg heartbeat.svg --fondo "#14111a"
+<span class="p">$ </span>caligrama animar title.png -t caligrama -w 160 --espacios sin --con-huecos \
+      --colores "#ff2d55,#ff8a3d,#b44dff" --svg title.svg</code></pre></div>
+    <p>If output isn't a terminal (for example, redirected to a file), <code>animar</code> plays a single loop.</p>
+
+    <h2 id="en-cli"><span class="num">10</span>CLI reference<a class="anchor" href="#en-cli">#</a></h2>
+    <div class="code"><span class="label">usage</span><pre><code>caligrama IMAGE [options]            <span class="c"># write the text inside the silhouette</span>
+caligrama analizar IMAGE [options]   <span class="c"># inspect the silhouette to design the text</span>
+caligrama animar IMAGE [options]     <span class="c"># animate in the terminal or to an SVG</span></code></pre></div>
+    <p>The text comes from <code>-t</code>, <code>-f</code> or, if neither is given, stdin (except for <code>analizar</code>). <code>-t</code> and <code>-f</code> can't be combined. Help and error messages are in Spanish.</p>
+    <h3>Common options</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Option</th><th>Python</th><th>Description</th></tr>
+      <tr><td><code>-t, --texto TEXT</code></td><td><code>texto</code></td><td>Message to write.</td></tr>
+      <tr><td><code>-f, --archivo PATH</code></td><td>—</td><td>Read the message from a file (UTF-8).</td></tr>
+      <tr><td><code>-w, --ancho N|auto</code></td><td><code>ancho</code></td><td>Output columns (60).</td></tr>
+      <tr><td><code>--aspecto F</code></td><td><code>aspecto</code></td><td>Character height/width (2.0).</td></tr>
+      <tr><td><code>--umbral N</code></td><td><code>umbral</code></td><td>Shape/background threshold 0–255 (auto).</td></tr>
+      <tr><td><code>--sin-repetir</code></td><td><code>repetir=False</code></td><td>Don't repeat the text.</td></tr>
+      <tr><td><code>--espacios MODE</code></td><td><code>espacios</code></td><td><code>normal</code>, <code>sin</code> or <code>todos</code>.</td></tr>
+      <tr><td><code>--invertir</code></td><td><code>invertir=True</code></td><td>Write on the background.</td></tr>
+      <tr><td><code>--con-huecos</code></td><td><code>huecos=True</code></td><td>Keep interior holes.</td></tr>
+      <tr><td><code>--suavizar N</code></td><td><code>suavizar</code></td><td>Join thin strokes (radius in px).</td></tr>
+      <tr><td><code>--desfase N</code></td><td><code>desfase</code></td><td>Start N letters in.</td></tr>
+      <tr><td><code>-h, --help</code></td><td>—</td><td>Full help.</td></tr>
+    </table></div>
+    <h3>Output (draw and animate)</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Option</th><th>Python</th><th>Description</th></tr>
+      <tr><td><code>--colores C1,C2,...</code></td><td><code>colores</code></td><td>Hex gradient.</td></tr>
+      <tr><td><code>--colores imagen</code></td><td><code>color=True</code></td><td>Each letter in the image's color.</td></tr>
+      <tr><td><code>--svg PATH</code></td><td><code>a_svg()</code></td><td>Save an SVG instead of printing.</td></tr>
+      <tr><td><code>--fondo COLOR</code></td><td><code>fondo</code></td><td>SVG background (transparent if omitted).</td></tr>
+      <tr><td><code>--tamano PX</code></td><td><code>tamano</code></td><td>SVG font size (14).</td></tr>
+    </table></div>
+    <h3>Animate only</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Option</th><th>Python</th><th>Description</th></tr>
+      <tr><td><code>--paso N</code></td><td><code>paso</code></td><td>Letters the text advances per frame (1; 0 = still).</td></tr>
+      <tr><td><code>--latido F</code></td><td><code>latido</code></td><td>Shape beats, shrinking to F (0–1).</td></tr>
+      <tr><td><code>--fotogramas N</code></td><td><code>fotogramas</code></td><td>Frame count (auto: seamless loop).</td></tr>
+      <tr><td><code>--intervalo S</code></td><td><code>intervalo</code></td><td>Seconds per frame (0.08).</td></tr>
+      <tr><td><code>--veces N</code></td><td><code>veces</code></td><td>Loops in the terminal (endless; 1 if not a terminal).</td></tr>
+    </table></div>
+    <p>Output options aren't accepted by <code>analizar</code>, and animation options only work with <code>animar</code>: the CLI tells you if you mix them. Exit code: <code>0</code> on success, <code>2</code> on any error (message on stderr).</p>
+
+    <h2 id="en-recipes"><span class="num">11</span>Recipes<a class="anchor" href="#en-recipes">#</a></h2>
+
+    <h3>Birthday card with everyone's messages</h3>
+    <div class="code"><span class="label">python</span><pre><code>import caligrama
+
+messages = [
+    "Happy birthday, Ana!",
+    "Wishing you the best year yet.",
+    "We love you.",
+]
+text = " · ".join(messages)
+print(caligrama.dibujar("ana.png", text, ancho="auto", repetir=False))</code></pre></div>
+
+    <h3>An image downloaded from the web</h3>
+    <div class="code"><span class="label">python</span><pre><code>import urllib.request
+import caligrama
+
+data = urllib.request.urlopen("https://example.com/logo.png").read()
+print(caligrama.dibujar(data, "hello from the web", ancho=50))</code></pre></div>
+
+    <h3>Web endpoint (FastAPI) that returns an SVG</h3>
+    <div class="code"><span class="label">python</span><pre><code>from fastapi import FastAPI, UploadFile, Form
+from fastapi.responses import Response
+import caligrama
+
+app = FastAPI()
+
+@app.post("/caligrama.svg")
+async def generate(image: UploadFile, text: str = Form(...), width: int = Form(60)):
+    try:
+        drawing = caligrama.dibujar(await image.read(), text, ancho=width)
+    except ValueError as e:
+        return Response(str(e), status_code=422)
+    return Response(caligrama.a_svg(drawing, fondo="#ffffff"), media_type="image/svg+xml")</code></pre></div>
+    <p>Everything runs locally with no calls to external services. Cap the width and upload size if the endpoint is public.</p>
+
+    <h3>Showing it on an HTML page</h3>
+    <div class="code"><span class="label">python</span><pre><code>import html, caligrama
+
+drawing = caligrama.dibujar("logo.png", "hello", ancho=40)
+page = f'&lt;pre style="font-family: monospace; line-height: 1"&gt;{html.escape(drawing)}&lt;/pre&gt;'</code></pre></div>
+    <p>Always escape the text (<code>html.escape</code>) and use a monospaced font. If <code>line-height</code> isn't ~1, adjust <code>aspecto</code>. For a more faithful result, embed the SVG from <code>a_svg</code>.</p>
+
+    <h3>Jupyter</h3>
+    <div class="code"><span class="label">python</span><pre><code>from IPython.display import SVG, display
+import caligrama
+
+display(SVG(caligrama.a_svg(caligrama.dibujar("cat.png", "meow", ancho=50))))</code></pre></div>
+
+    <h3>Welcome banner for your CLI</h3>
+    <div class="code"><span class="label">python</span><pre><code>import sys, caligrama
+
+if sys.stdout.isatty():
+    caligrama.reproducir(caligrama.animar("logo.png", "my-tool", paso=2, ancho=40, espacios="sin"), veces=1)</code></pre></div>
+
+    <h3>A whole folder of images</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>for img in photos/*.png; do
+    caligrama "$img" -f poem.txt -w auto --sin-repetir > "${img%.png}.txt"
+  done</code></pre></div>
+
+    <h3>A message for WhatsApp, Discord or Slack</h3>
+    <p>Generate it without color, 30–40 columns wide (phone screens are narrow), and paste it between triple backticks <code>```</code> so it renders in a monospaced font.</p>
+
+    <h3>Examples in the repository</h3>
+    <div class="code"><span class="label">bash</span><pre><code><span class="p">$ </span>git clone https://github.com/maosuarez/caligrama && cd caligrama
+<span class="p">$ </span>python examples/demo.py          <span class="c"># API tour</span>
+<span class="p">$ </span>bash examples/demo.sh            <span class="c"># CLI tour</span>
+<span class="p">$ </span>python examples/latido.py        <span class="c"># beating heart (--svg latido.svg to save it)</span>
+<span class="p">$ </span>python examples/titulo.py        <span class="c"># the animated README title</span>
+<span class="p">$ </span>python examples/arbol.py         <span class="c"># the colored tree</span></code></pre></div>
+
+    <h2 id="en-troubleshooting"><span class="num">12</span>Troubleshooting<a class="anchor" href="#en-troubleshooting">#</a></h2>
+    <div class="table-wrap"><table>
+      <tr><th>Symptom</th><th>Try</th></tr>
+      <tr><td>The shape is a rectangle or includes the background</td><td>The background isn't flat or touches the border with another color. Crop the image, use a transparent PNG or raise <code>umbral</code>.</td></tr>
+      <tr><td>Light parts of the shape are missing</td><td>Lower <code>umbral</code> (e.g. 20–30).</td></tr>
+      <tr><td>The shape is broken into loose pieces</td><td><code>suavizar=2</code> to <code>5</code>, or a larger <code>ancho</code>.</td></tr>
+      <tr><td>A hole that should show is filled in</td><td><code>huecos=True</code> / <code>--con-huecos</code>.</td></tr>
+      <tr><td>It looks stretched or squashed</td><td>Set <code>aspecto</code> to your font's proportions.</td></tr>
+      <tr><td>Too little detail</td><td>Raise <code>ancho</code>. With short text, keep <code>repetir=True</code>.</td></tr>
+      <tr><td>Words get split a lot</td><td>Unavoidable at edges; try another <code>ancho</code> or <code>desfase</code>, and use <code>analizar</code> to see the runs.</td></tr>
+      <tr><td>The text doesn't fit with <code>"auto"</code></td><td>Shorten it, or use a fixed width with <code>repetir=False</code> (the overflow is cut).</td></tr>
+      <tr><td>Codes like <code>\x1b[38;2;...</code> show up</td><td>Your output doesn't understand ANSI. Drop <code>color=True</code> / <code>--colores</code>, or use a modern terminal.</td></tr>
+      <tr><td>Letters misalign when pasted</td><td>The destination isn't monospaced. Wrap it in <code>```</code> or <code>&lt;pre&gt;</code>.</td></tr>
+      <tr><td>The SVG is huge</td><td>Fewer <code>fotogramas</code>, smaller <code>ancho</code>, or no <code>color=True</code>.</td></tr>
+    </table></div>
+
+    <h2 id="en-errors"><span class="num">13</span>Errors<a class="anchor" href="#en-errors">#</a></h2>
+    <div class="table-wrap"><table>
+      <tr><th>Exception</th><th>When</th></tr>
+      <tr><td><code>OSError</code></td><td>The file can't be read (missing, no permission).</td></tr>
+      <tr><td><code>ValueError</code></td><td>The image can't be decoded; <code>el texto está vacío</code> (empty text); <code>no se encontró ninguna silueta en la imagen</code> (no silhouette found); <code>opción inválida: ...</code> (invalid option: width 0, unknown space mode, malformed color...); the text doesn't fit even at 1000 columns with <code>"auto"</code>.</td></tr>
+      <tr><td><code>KeyboardInterrupt</code></td><td>Ctrl+C during <code>reproducir</code>.</td></tr>
+    </table></div>
+    <div class="code"><span class="label">python</span><pre><code>try:
+    drawing = caligrama.dibujar(path, text, ancho="auto")
+except OSError as e:
+    print("couldn't open the image:", e)
+except ValueError as e:
+    print("check the image or the options:", e)</code></pre></div>
+    <p>Error messages are in Spanish.</p>
+
+    <h2 id="en-types"><span class="num">14</span>Types and version<a class="anchor" href="#en-types">#</a></h2>
+    <p>The package ships <code>caligrama.pyi</code>, so your editor and mypy/pyright know the signatures, the <code>Literal</code> values of <code>espacios</code> and the <code>TypedDict</code> returned by <code>analizar</code> (<code>caligrama.Analisis</code>).</p>
+    <div class="code"><span class="label">python</span><pre><code>import caligrama
+caligrama.__version__   <span class="c"># "0.3.2"</span></code></pre></div>
+    <div class="card">
+      <p><strong>Links:</strong>
+        <a href="https://pypi.org/project/caligrama/">PyPI</a> ·
+        <a href="https://github.com/maosuarez/caligrama">GitHub</a> ·
+        <a href="https://github.com/maosuarez/caligrama/issues">Report an issue</a> ·
+        <a href="/en/projects/caligrama">Project story</a>
+      </p>
+      <p>MIT license. Use it for anything, including commercial projects.</p>
+    </div>
+    <footer>caligrama — documentation · Mauricio "Mao" Suárez Barrera</footer>
+  </article>
+  </main>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var titles = { es: "caligrama — Documentación", en: "caligrama — Documentation" };
+
+  function pick() {
+    var q = new URLSearchParams(location.search).get("lang");
+    if (q === "es" || q === "en") return q;
+    var h = location.hash.slice(1, 3);
+    if (h === "es" || h === "en") return h;
+    try { var s = localStorage.getItem("caligrama-docs-lang"); if (s === "es" || s === "en") return s; } catch (e) {}
+    return (navigator.language || "es").toLowerCase().indexOf("es") === 0 ? "es" : "en";
+  }
+
+  function setLang(lang, persist) {
+    root.setAttribute("data-lang", lang);
+    root.setAttribute("lang", lang);
+    document.title = titles[lang];
+    document.querySelectorAll("[data-set-lang]").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-set-lang") === lang));
+    });
+    document.querySelectorAll("[data-home]").forEach(function (a) { a.href = "https://www.maosuarez.com/" + lang; });
+    if (persist) {
+      try { localStorage.setItem("caligrama-docs-lang", lang); } catch (e) {}
+      var url = new URL(location.href);
+      url.searchParams.set("lang", lang);
+      url.hash = "";
+      history.replaceState(null, "", url);
+      window.scrollTo(0, 0);
+    }
+    spy();
+  }
+
+  document.querySelectorAll("[data-set-lang]").forEach(function (b) {
+    b.addEventListener("click", function () { setLang(b.getAttribute("data-set-lang"), true); });
+  });
+
+  // Índice móvil
+  var menu = document.querySelector(".menu-btn");
+  function closeMenu() { document.body.classList.remove("toc-open"); menu.setAttribute("aria-expanded", "false"); }
+  menu.addEventListener("click", function () {
+    var open = document.body.classList.toggle("toc-open");
+    menu.setAttribute("aria-expanded", String(open));
+  });
+  document.querySelectorAll("nav.toc a").forEach(function (a) { a.addEventListener("click", closeMenu); });
+
+  // Botones de copiar
+  document.querySelectorAll(".code pre").forEach(function (pre) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy";
+    btn.textContent = "copy";
+    btn.addEventListener("click", function () {
+      var clone = pre.cloneNode(true);
+      clone.querySelectorAll(".p").forEach(function (p) { p.remove(); });
+      var text = clone.textContent.replace(/\s+$/, "");
+      var done = function () { btn.textContent = "✓"; setTimeout(function () { btn.textContent = "copy"; }, 1200); };
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () {});
+    });
+    pre.parentNode.appendChild(btn);
+  });
+
+  // Resaltar la sección visible en el índice
+  var ticking = false;
+  function spy() {
+    var lang = root.getAttribute("data-lang");
+    var links = document.querySelectorAll('nav.toc [data-l="' + lang + '"] a');
+    var current = null;
+    links.forEach(function (a) {
+      var el = document.getElementById(a.getAttribute("href").slice(1));
+      if (el && el.getBoundingClientRect().top < 120) current = a;
+    });
+    links.forEach(function (a) { a.classList.toggle("active", a === (current || links[0])); });
+  }
+  window.addEventListener("scroll", function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(function () { spy(); ticking = false; }); }
+  }, { passive: true });
+
+  setLang(pick(), false);
+})();
+</script>
+</body>
+</html>

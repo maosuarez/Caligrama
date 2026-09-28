@@ -9,7 +9,7 @@
 [![CI](https://github.com/maosuarez/caligrama/actions/workflows/ci.yml/badge.svg)](https://github.com/maosuarez/caligrama/actions/workflows/ci.yml)
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue)](https://github.com/maosuarez/caligrama/blob/main/LICENSE)
 [![Hecho en Rust](https://img.shields.io/badge/núcleo-Rust-orange)](https://github.com/maosuarez/caligrama/tree/main/src)
-[![Documentación](https://img.shields.io/badge/docs-ES%20%7C%20EN-ff2d55)](https://www.maosuarez.com/docs/caligrama)
+[![Documentación](https://img.shields.io/badge/docs-ES%20%7C%20EN-ff2d55)](https://maosuarez.github.io/Caligrama/)
 
 <img src="https://raw.githubusercontent.com/maosuarez/caligrama/main/assets/latido.svg" alt="Un corazón que late, escrito con un poema que corre por dentro. Generado con caligrama." width="420">
 
@@ -207,7 +207,7 @@ Solo para animar: `fotogramas`/`--fotogramas`, `paso`/`--paso`, `latido`/`--lati
 
 `caligrama --help` muestra lo mismo.
 
-La [documentación completa](https://www.maosuarez.com/docs/caligrama) (en español e inglés) explica cada opción con ejemplos, recetas (web, Jupyter, tarjetas, banners), la referencia del CLI y qué hacer cuando la silueta no sale bien. *Full documentation in English: [maosuarez.com/docs/caligrama?lang=en](https://www.maosuarez.com/docs/caligrama?lang=en).*
+La [documentación completa](https://maosuarez.github.io/Caligrama/) (en español e inglés) explica cada opción con ejemplos, recetas (web, Jupyter, tarjetas, banners), la referencia del CLI y qué hacer cuando la silueta no sale bien. *Full documentation in English: [maosuarez.github.io/Caligrama/?lang=en](https://maosuarez.github.io/Caligrama/?lang=en).*
 
 ## Ideas para usarlo
 
